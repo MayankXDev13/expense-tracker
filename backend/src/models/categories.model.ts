@@ -10,6 +10,7 @@ const categoriesSchema = new Schema(
     type: {
       type: String,
       required: true,
+      enum: ["income", "expense"], 
     },
     userId: {
       type: Schema.Types.ObjectId,

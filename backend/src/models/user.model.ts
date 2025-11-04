@@ -4,6 +4,7 @@ export interface User {
   avatar: {
     url: string;
   };
+  _id: string;
   username: string;
   email: string;
   password: string;

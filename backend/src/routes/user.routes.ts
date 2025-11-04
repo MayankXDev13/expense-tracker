@@ -12,8 +12,8 @@ const router: Router = Router();
 
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
-router.route("/logout").get(logoutUser);
-router.route("/refresh").get(refreshToken);
+router.route("/logout").post(logoutUser);
+router.route("/refresh").post(refreshToken);
 router.route("/getCurrentUser").get(verifyJWT, getCurrentUser);
 
 export default router;

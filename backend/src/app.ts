@@ -20,14 +20,15 @@ app.use(cookieParser());
 
 // Routes Import
 import healthCheckRoutes from "./routes/healthcheck.routes";
-import userRoutes from "./routes/user.routes"
+import userRoutes from "./routes/user.routes";
+import categoriesRoutes from "./routes/categories.routes";
 
 // Routes
 app.use("/api/v1/expenseTracker/healthcheck", healthCheckRoutes);
 app.use("/api/v1/expenseTracker/user", userRoutes);
+app.use("/api/v1/expenseTracker/categories", categoriesRoutes);
 
 // Error Handler
 app.use(errorHandler);
-
 
 export default app;
