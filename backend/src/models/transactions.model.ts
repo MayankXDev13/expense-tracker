@@ -14,6 +14,7 @@ const transactionsSchema = new Schema(
     type: {
       type: String,
       required: true,
+      enum: ["Income", "Expense"],
     },
     category: {
       type: Schema.Types.ObjectId,
@@ -39,10 +40,15 @@ const transactionsSchema = new Schema(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   { timestamps: true }
 );
+
+transactionsSchema.pre("save", function (next) {
+  this.isActive = this.isRecurring; // true if recurring, false otherwise
+  next();
+});
 
 export const Transactions = mongoose.model("Transactions", transactionsSchema);

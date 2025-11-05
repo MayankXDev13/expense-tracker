@@ -9,9 +9,11 @@ import { verifyJWT } from "../middlewares/auth.middlewares";
 
 const router: Router = Router();
 
-router.route("/").post(verifyJWT, createCategory);
-router.route("/").get(verifyJWT, getCategories);
-router.route("/:id").patch(verifyJWT, updateCategory);
-router.route("/:id").delete(verifyJWT, deleteCategory);
+router.use(verifyJWT);
+
+router.route("/").post(createCategory);
+router.route("/").get(getCategories);
+router.route("/:id").patch(updateCategory);
+router.route("/:id").delete(deleteCategory);
 
 export default router;
