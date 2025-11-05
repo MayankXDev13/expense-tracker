@@ -22,14 +22,15 @@ app.use(cookieParser());
 import healthCheckRoutes from "./routes/healthcheck.routes";
 import userRoutes from "./routes/user.routes";
 import categoriesRoutes from "./routes/categories.routes";
-import transactionRoutes from "./routes/transaction.routes"
+import transactionRoutes from "./routes/transactions.routes";
+import budgetsRoutes from "./routes/budgets.routes";
 
 // Routes
 app.use("/api/v1/expenseTracker/healthcheck", healthCheckRoutes);
 app.use("/api/v1/expenseTracker/user", userRoutes);
 app.use("/api/v1/expenseTracker/categories", categoriesRoutes);
 app.use("/api/v1/expenseTracker/transaction", transactionRoutes);
-
+app.use("/api/v1/expenseTracker/budgets", budgetsRoutes);
 
 // Error Handler
 app.use(errorHandler);

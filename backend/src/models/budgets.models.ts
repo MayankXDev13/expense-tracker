@@ -19,6 +19,7 @@ const budgetsScheam = new Schema(
     period: {
       type: String,
       required: true,
+      enum: ["daily", "weekly", "monthly", "quarterly", "annual"],
     },
     startDate: {
       type: Date,

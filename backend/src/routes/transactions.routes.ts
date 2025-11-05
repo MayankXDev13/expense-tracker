@@ -6,7 +6,7 @@ import {
   getTrasactionById,
   getTrasactions,
   updateTrasaction,
-} from "../controllers/transaction.controller";
+} from "../controllers/transactions.controller";
 
 const router: Router = Router();
 
