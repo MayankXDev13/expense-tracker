@@ -1,19 +1,15 @@
 import { motion } from "framer-motion";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useLogout } from "@/hooks/useLogout";
 
 export default function Navbar() {
-  const { data: user, isLoading} = useCurrentUser();
-  const router = useRouter();
+  const { data: user, isLoading } = useCurrentUser();
 
   const isLoggedIn = !!user;
-
-  const handleLogout = () => {
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    router.navigate({ to: "/signin" });
-  };
+  const { logout, isLoggingOut } = useLogout();
 
   return (
     <motion.nav
@@ -54,21 +50,21 @@ export default function Navbar() {
                   <Link to={item.to}>{item.label}</Link>
                 </motion.li>
               ))}
-              {/* ✅ Logout Button */}
+
               <Button
                 variant="secondary"
                 className="ml-4"
-                onClick={handleLogout}
+                onClick={() => logout()}
               >
-                Logout
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </Button>
             </>
           ) : (
             <>
               {[
                 { label: "Dashboard", to: "/dashboard" },
-                { label: "Sign In", to: "/signin" },
                 { label: "Sign Up", to: "/signup" },
+                { label: "Sign In", to: "/signin" },
               ].map((item) => (
                 <motion.li
                   key={item.label}

@@ -32,7 +32,9 @@ export const verifyJWT = asyncHandler(
         throw new ApiError(401, "Invalid access token");
       }
 
-      const user = await User.findById(decodedToken.id);
+      const user = await User.findById(decodedToken.id).select(
+        "-password -refreshToken -updatedAt -isEmailVerified -currency -createdAt -timezone -loginType -__v -_id"
+      );
 
       if (!user) {
         throw new ApiError(401, "User not found");

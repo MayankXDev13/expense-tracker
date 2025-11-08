@@ -1,8 +1,8 @@
+import { axiosInstance } from "@/lib/axiosInstance";
 import { useQuery } from "@tanstack/react-query";
-import api from "../lib/axiosInstance";
 
 const getCurrentUser = async () => {
-  const response = await api.get("/user/getCurrentUser");
+  const response = await axiosInstance.get("/user/getCurrentUser");
   return response.data;
 };
 

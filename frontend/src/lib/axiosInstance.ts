@@ -38,8 +38,6 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError: unknown) {
-        console.warn("❌ Refresh failed — redirecting to signin");
-
         if (
           (refreshError as { response?: { status: number } }).response
             ?.status === 400
@@ -63,3 +61,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+
