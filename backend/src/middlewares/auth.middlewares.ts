@@ -78,9 +78,7 @@ export const getLoggedInUserOrIgnore = asyncHandler(
         return next();
       }
 
-      const user = await User.findById(decodedToken.id).select(
-        "-password"
-      );
+      const user = await User.findById(decodedToken.id).select("-password");
 
       if (user) {
         req.user = user;
