@@ -4,8 +4,6 @@ import { toast } from "sonner";
 import type { Transaction } from "@/types/transaction";
 import axiosInstance from "@/lib/axiosInstance";
 
-
-
 export function useUpdateTransaction() {
   const queryClient = useQueryClient();
 
@@ -13,6 +11,9 @@ export function useUpdateTransaction() {
     mutationFn: async (updatedTx: Transaction) => {
       if (!updatedTx._id)
         throw new Error("Transaction ID is required for update");
+
+      console.log(updatedTx);
+      
 
       const response = await axiosInstance.put(
         `/transaction/${updatedTx._id}`,

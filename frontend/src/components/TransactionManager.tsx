@@ -46,6 +46,8 @@ export default function TransactionManager() {
  
   const handleSave = useCallback((tx: Transaction) => {
     if (editingId) {
+      console.log(tx);
+      
       updateTransaction(tx);
     } else {
       createTransaction(tx);

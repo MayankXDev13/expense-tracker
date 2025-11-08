@@ -26,6 +26,10 @@ export default function TransactionDialog({
   onSave,
   isSaving = false,
 }: Props) {
+
+
+
+  
   const [form, setForm] = useState<Partial<Transaction>>({
     amount: 0,
     type: "Expense",
@@ -35,20 +39,26 @@ export default function TransactionDialog({
     isActive: true,
   });
 
+  const [categoryDisplay, setCategoryDisplay] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Update form state when editingTransaction changes
   useEffect(() => {
     if (editingTransaction) {
-      // Extract category ID if it's an object, otherwise use as string
+      // Extract category ID and display name
       const categoryId = typeof editingTransaction.category === "string"
         ? editingTransaction.category
         : editingTransaction.category?._id || "";
+      
+      const categoryName = typeof editingTransaction.category === "object" && editingTransaction.category?.name
+        ? editingTransaction.category.name
+        : editingTransaction.category?.type || categoryId || "";
       
       setForm({
         ...editingTransaction,
         category: categoryId,
       });
+      setCategoryDisplay(categoryName);
     } else {
       setForm({
         amount: 0,
@@ -58,6 +68,7 @@ export default function TransactionDialog({
         isRecurring: false,
         isActive: true,
       });
+      setCategoryDisplay("");
     }
     setErrors({});
   }, [editingTransaction, open]);
