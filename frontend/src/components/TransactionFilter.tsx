@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Plus, RotateCcw } from "lucide-react";
 
 type Filters = {
@@ -29,7 +27,7 @@ export default function TransactionFilter({
   const hasActiveFilters = filters.type || filters.category || filters.active;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Transactions</h1>
         <Button onClick={onAddClick} className="gap-2">
@@ -40,12 +38,11 @@ export default function TransactionFilter({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border">
         <div>
-          <Label htmlFor="type-filter">Type</Label>
+          <label className="block text-sm font-medium mb-1">Type</label>
           <select
-            id="type-filter"
             value={filters.type}
             onChange={(e) => handleFilterChange("type", e.target.value)}
-            className="w-full border rounded-md p-2 mt-1"
+            className="w-full border rounded-md p-2"
           >
             <option value="">All Types</option>
             <option value="Income">Income</option>
@@ -54,22 +51,22 @@ export default function TransactionFilter({
         </div>
 
         <div>
-          <Label htmlFor="category-filter">Category</Label>
-          <Input
-            id="category-filter"
+          <label className="block text-sm font-medium mb-1">Category</label>
+          <input
+            type="text"
             value={filters.category}
             onChange={(e) => handleFilterChange("category", e.target.value)}
             placeholder="Filter by category"
+            className="w-full border rounded-md p-2"
           />
         </div>
 
         <div>
-          <Label htmlFor="active-filter">Status</Label>
+          <label className="block text-sm font-medium mb-1">Status</label>
           <select
-            id="active-filter"
             value={filters.active}
             onChange={(e) => handleFilterChange("active", e.target.value)}
-            className="w-full border rounded-md p-2 mt-1"
+            className="w-full border rounded-md p-2"
           >
             <option value="">All</option>
             <option value="active">Active</option>

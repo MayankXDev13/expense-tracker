@@ -15,7 +15,7 @@ export function useUpdateTransaction() {
         throw new Error("Transaction ID is required for update");
 
       const response = await axiosInstance.put(
-        `/transaction/:${updatedTx._id}`,
+        `/transaction/${updatedTx._id}`,
         updatedTx
       );
 

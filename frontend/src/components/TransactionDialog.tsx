@@ -40,7 +40,15 @@ export default function TransactionDialog({
   // Update form state when editingTransaction changes
   useEffect(() => {
     if (editingTransaction) {
-      setForm(editingTransaction);
+      // Extract category ID if it's an object, otherwise use as string
+      const categoryId = typeof editingTransaction.category === "string"
+        ? editingTransaction.category
+        : editingTransaction.category?._id || "";
+      
+      setForm({
+        ...editingTransaction,
+        category: categoryId,
+      });
     } else {
       setForm({
         amount: 0,
@@ -78,7 +86,13 @@ export default function TransactionDialog({
     if (!form.amount || form.amount <= 0) {
       newErrors.amount = "Amount must be greater than 0";
     }
-    if (!form.category?.trim()) {
+    
+    // Handle category as string or object
+    const categoryValue = typeof form.category === "string" 
+      ? form.category 
+      : form.category?._id || form.category?.name || "";
+    
+    if (!categoryValue || (typeof categoryValue === "string" && !categoryValue.trim())) {
       newErrors.category = "Category is required";
     }
 

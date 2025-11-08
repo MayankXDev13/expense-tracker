@@ -1,18 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axiosInstance";
 import { toast } from "sonner";
-
-const BASE_URL = "http://localhost:5000/api/v1/expenseTracker/transaction";
+import { AxiosError } from "axios";
 
 export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data } = await axiosInstance.delete(`${BASE_URL}/delete/${id}`, {
-        withCredentials: true,
-      });
-      return data;
+      const response = await axiosInstance.delete(`transaction/${id}`);
+      return response.data;
     },
 
     onSuccess: () => {
@@ -23,7 +20,7 @@ export function useDeleteTransaction() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
 
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       toast("Failed to Delete Transaction", {
         description:
           error.response?.data?.message ||
