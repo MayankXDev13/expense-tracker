@@ -9,6 +9,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import type { Transaction } from "@/types/transaction";
 
 type Props = {
@@ -26,10 +28,6 @@ export default function TransactionDialog({
   onSave,
   isSaving = false,
 }: Props) {
-
-
-
-  
   const [form, setForm] = useState<Partial<Transaction>>({
     amount: 0,
     type: "Expense",
@@ -39,26 +37,19 @@ export default function TransactionDialog({
     isActive: true,
   });
 
-  const [categoryDisplay, setCategoryDisplay] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Update form state when editingTransaction changes
   useEffect(() => {
     if (editingTransaction) {
-      // Extract category ID and display name
-      const categoryId = typeof editingTransaction.category === "string"
-        ? editingTransaction.category
-        : editingTransaction.category?._id || "";
-      
-      const categoryName = typeof editingTransaction.category === "object" && editingTransaction.category?.name
-        ? editingTransaction.category.name
-        : editingTransaction.category?.type || categoryId || "";
-      
+      const categoryId =
+        typeof editingTransaction.category === "string"
+          ? editingTransaction.category
+          : editingTransaction.category?._id || "";
+
       setForm({
         ...editingTransaction,
         category: categoryId,
       });
-      setCategoryDisplay(categoryName);
     } else {
       setForm({
         amount: 0,
@@ -68,7 +59,6 @@ export default function TransactionDialog({
         isRecurring: false,
         isActive: true,
       });
-      setCategoryDisplay("");
     }
     setErrors({});
   }, [editingTransaction, open]);
@@ -78,34 +68,20 @@ export default function TransactionDialog({
     value: string | number | boolean
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    // Clear error for this field
     if (errors[key]) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[key];
-        return newErrors;
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
       });
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!form.description?.trim()) {
-      newErrors.description = "Description is required";
-    }
-    if (!form.amount || form.amount <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
-    }
-    
-    // Handle category as string or object
-    const categoryValue = typeof form.category === "string" 
-      ? form.category 
-      : form.category?._id || form.category?.name || "";
-    
-    if (!categoryValue || (typeof categoryValue === "string" && !categoryValue.trim())) {
-      newErrors.category = "Category is required";
-    }
+    if (!form.description?.trim()) newErrors.description = "Description is required";
+    if (!form.amount || form.amount <= 0) newErrors.amount = "Amount must be greater than 0";
+    if (!form.category?.toString().trim()) newErrors.category = "Category is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -118,15 +94,16 @@ export default function TransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-md rounded-xl shadow-lg">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
             {editingTransaction ? "Edit Transaction" : "New Transaction"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          <div>
+          {/* Description */}
+          <div className="space-y-1.5">
             <Label htmlFor="description">Description</Label>
             <Input
               id="description"
@@ -136,11 +113,12 @@ export default function TransactionDialog({
               disabled={isSaving}
             />
             {errors.description && (
-              <p className="text-red-600 text-sm mt-1">{errors.description}</p>
+              <p className="text-sm text-red-600">{errors.description}</p>
             )}
           </div>
 
-          <div>
+          {/* Amount */}
+          <div className="space-y-1.5">
             <Label htmlFor="amount">Amount (₹)</Label>
             <Input
               id="amount"
@@ -153,25 +131,30 @@ export default function TransactionDialog({
               disabled={isSaving}
             />
             {errors.amount && (
-              <p className="text-red-600 text-sm mt-1">{errors.amount}</p>
+              <p className="text-sm text-red-600">{errors.amount}</p>
             )}
           </div>
 
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              value={form.type}
-              onChange={(e) => handleChange("type", e.target.value)}
-              className="border rounded-md p-2 w-full"
+          {/* Type */}
+          <div className="space-y-1.5">
+            <Label>Type</Label>
+            <Select
+              value={form.type || "Expense"}
+              onValueChange={(val) => handleChange("type", val)}
               disabled={isSaving}
             >
-              <option value="Income">Income</option>
-              <option value="Expense">Expense</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Income">Income</SelectItem>
+                <SelectItem value="Expense">Expense</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
+          {/* Category */}
+          <div className="space-y-1.5">
             <Label htmlFor="category">Category</Label>
             <Input
               id="category"
@@ -181,47 +164,44 @@ export default function TransactionDialog({
               disabled={isSaving}
             />
             {errors.category && (
-              <p className="text-red-600 text-sm mt-1">{errors.category}</p>
+              <p className="text-sm text-red-600">{errors.category}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="recurring"
-              checked={form.isRecurring || false}
-              onChange={(e) => handleChange("isRecurring", e.target.checked)}
-              disabled={isSaving}
-            />
-            <Label htmlFor="recurring">Recurring</Label>
-          </div>
+          {/* Toggles */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="flex items-center justify-between w-full">
+              <Label htmlFor="recurring" className="text-sm">
+                Recurring
+              </Label>
+              <Switch
+                id="recurring"
+                checked={form.isRecurring || false}
+                onCheckedChange={(val) => handleChange("isRecurring", val)}
+                disabled={isSaving}
+              />
+            </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="active"
-              checked={form.isActive !== false}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              disabled={isSaving}
-            />
-            <Label htmlFor="active">Active</Label>
+            <div className="flex items-center justify-between w-full">
+              <Label htmlFor="active" className="text-sm">
+                Active
+              </Label>
+              <Switch
+                id="active"
+                checked={form.isActive ?? true}
+                onCheckedChange={(val) => handleChange("isActive", val)}
+                disabled={isSaving}
+              />
+            </div>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            disabled={isSaving}
-          >
+        <DialogFooter className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSaving}>
-            {isSaving
-              ? "Saving..."
-              : editingTransaction
-                ? "Update"
-                : "Create"}
+            {isSaving ? "Saving..." : editingTransaction ? "Update" : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

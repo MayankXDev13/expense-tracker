@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import TransactionFilter from "./TransactionFilter";
 import TransactionTable from "./TransactionTable";
 import TransactionSummary from "./TransactionSummary";
@@ -8,7 +9,9 @@ import type { Transaction } from "@/types/transaction";
 import { useGetTransactions } from "@/hooks/useGetTransactions";
 import { useCreateTransaction } from "@/hooks/useCreateTransaction";
 import { useUpdateTransaction } from "@/hooks/useUpdateTransaction";
-import { useDeleteTransaction } from "../hooks/useDeleteTransaction";
+import { useDeleteTransaction } from "@/hooks/useDeleteTransaction";
+import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export default function TransactionManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -19,23 +22,27 @@ export default function TransactionManager() {
     active: "",
   });
 
-  const { data: transactions = [], isLoading, isError } = useGetTransactions(filters);
-  const { mutate: createTransaction, isPending: isCreating } = useCreateTransaction();
-  const { mutate: updateTransaction, isPending: isUpdating } = useUpdateTransaction();
+  const {
+    data: transactions = [],
+    isLoading,
+    isError,
+  } = useGetTransactions(filters);
+  const { mutate: createTransaction, isPending: isCreating } =
+    useCreateTransaction();
+  const { mutate: updateTransaction, isPending: isUpdating } =
+    useUpdateTransaction();
   const { mutate: deleteTransaction } = useDeleteTransaction();
 
   const isSaving = isCreating || isUpdating;
 
- 
+  // Calculate totals using useMemo
   const { totalIncome, totalExpense, balance } = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "Income")
       .reduce((sum, t) => sum + t.amount, 0);
-    
     const expense = transactions
       .filter((t) => t.type === "Expense")
       .reduce((sum, t) => sum + t.amount, 0);
-
     return {
       totalIncome: income,
       totalExpense: expense,
@@ -43,21 +50,19 @@ export default function TransactionManager() {
     };
   }, [transactions]);
 
- 
-  const handleSave = useCallback((tx: Transaction) => {
-    if (editingId) {
-      console.log(tx);
-      
-      updateTransaction(tx);
-    } else {
-      createTransaction(tx);
-    }
-    handleDialogClose();
-  }, [editingId, updateTransaction, createTransaction]);
+  const handleSave = useCallback(
+    (tx: Transaction) => {
+      if (editingId) updateTransaction(tx);
+      else createTransaction(tx);
+      handleDialogClose();
+    },
+    [editingId, updateTransaction, createTransaction]
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    deleteTransaction(id);
-  }, [deleteTransaction]);
+  const handleDelete = useCallback(
+    (id: string) => deleteTransaction(id),
+    [deleteTransaction]
+  );
 
   const handleDialogClose = useCallback(() => {
     setDialogOpen(false);
@@ -76,15 +81,14 @@ export default function TransactionManager() {
 
   const clearFilters = useCallback(() => {
     setFilters({ type: "", category: "", active: "" });
-    toast("Filters Cleared", {
+    toast.success("Filters Cleared", {
       description: "All filters have been reset.",
     });
   }, []);
 
-
   useEffect(() => {
     if (isError) {
-      toast("Error fetching transactions", {
+      toast.error("Error fetching transactions", {
         description: "Unable to load transactions. Please try again later.",
       });
     }
@@ -96,8 +100,7 @@ export default function TransactionManager() {
   );
 
   return (
-    <div className="space-y-6 py-20">
-     
+<div className="space-y-6 pt-24 pb-16 px-4 md:px-8">
       <TransactionFilter
         filters={filters}
         setFilters={setFilters}
@@ -105,6 +108,11 @@ export default function TransactionManager() {
         onClearFilters={clearFilters}
       />
 
+      <TransactionSummary
+        totalIncome={totalIncome}
+        totalExpense={totalExpense}
+        balance={balance}
+      />
       <TransactionTable
         transactions={transactions}
         onEdit={handleEdit}
@@ -113,35 +121,40 @@ export default function TransactionManager() {
         error={isError ? "Failed to fetch transactions" : null}
       />
 
- 
-      <TransactionSummary
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        balance={balance}
-      />
-
- 
       <TransactionDialog
         open={dialogOpen}
-        onOpenChange={handleDialogClose}
+        onOpenChange={setDialogOpen}
         editingTransaction={editingTransaction}
         onSave={handleSave}
         isSaving={isSaving}
       />
 
-
       {!isLoading && !isError && transactions.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p>No transactions found. Add your first one!</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12 text-muted-foreground"
+        >
+          <p className="text-lg font-medium mb-2">No transactions found</p>
+          <p className="text-sm">Add your first transaction to get started!</p>
+        </motion.div>
       )}
 
-
-      {isSaving && (
-        <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
-          Saving changes...
-        </div>
-      )}
+      {/* Saving Indicator */}
+      <AnimatePresence>
+        {isSaving && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <Loader2 size={18} className="animate-spin" />
+            <span>Saving changes...</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

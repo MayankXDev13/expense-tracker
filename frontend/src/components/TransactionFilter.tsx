@@ -1,4 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Plus, RotateCcw } from "lucide-react";
 
 type Filters = {
@@ -21,73 +31,102 @@ export default function TransactionFilter({
   onClearFilters,
 }: Props) {
   const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters({ ...filters, [key]: value });
+    // Map the "all" sentinel back to empty string for your filter state
+    const normalized = value === "all" ? "" : value;
+    setFilters({ ...filters, [key]: normalized });
   };
 
-  const hasActiveFilters = filters.type || filters.category || filters.active;
+  const hasActiveFilters = !!(
+    filters.type ||
+    filters.category ||
+    filters.active
+  );
 
   return (
-    <div className="space-y-4 px-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Transactions</h1>
-        <Button onClick={onAddClick} className="gap-2">
+    <div className="px-4 md:px-8 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
+        {/* <Button onClick={onAddClick} className="gap-2">
           <Plus size={18} />
           New Transaction
-        </Button>
+        </Button> */}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border">
-        <div>
-          <label className="block text-sm font-medium mb-1">Type</label>
-          <select
-            value={filters.type}
-            onChange={(e) => handleFilterChange("type", e.target.value)}
-            className="w-full border rounded-md p-2"
-          >
-            <option value="">All Types</option>
-            <option value="Income">Income</option>
-            <option value="Expense">Expense</option>
-          </select>
-        </div>
+      <Card className="border border-border/50 shadow-sm bg-muted/30 backdrop-blur-sm rounded-xl">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Filters</h2>
+          
+          <Button onClick={onAddClick} className="gap-2">
+            <Plus size={18} />
+            New Transaction
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Type Filter */}
+            <div className="space-y-1.5">
+              <Label>Type</Label>
+              <Select
+                value={filters.type || "all"}
+                onValueChange={(value) => handleFilterChange("type", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="Income">Income</SelectItem>
+                  <SelectItem value="Expense">Expense</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Category</label>
-          <input
-            type="text"
-            value={filters.category}
-            onChange={(e) => handleFilterChange("category", e.target.value)}
-            placeholder="Filter by category"
-            className="w-full border rounded-md p-2"
-          />
-        </div>
+            {/* Category Filter */}
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <Input
+                placeholder="Search by category"
+                value={filters.category}
+                onChange={(e) => handleFilterChange("category", e.target.value)}
+                className="bg-background"
+              />
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Status</label>
-          <select
-            value={filters.active}
-            onChange={(e) => handleFilterChange("active", e.target.value)}
-            className="w-full border rounded-md p-2"
-          >
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
+            {/* Status Filter */}
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Select
+                value={filters.active || "all"}
+                onValueChange={(value) => handleFilterChange("active", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-        <div className="flex items-end">
+          {/* Clear Button */}
           {hasActiveFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClearFilters}
-              className="w-full gap-2"
-            >
-              <RotateCcw size={16} />
-              Clear Filters
-            </Button>
+            <div className="flex justify-end mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearFilters}
+                className="gap-2"
+              >
+                <RotateCcw size={16} />
+                Clear Filters
+              </Button>
+            </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
