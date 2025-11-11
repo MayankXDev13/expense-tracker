@@ -1,32 +1,43 @@
 "use client";
+
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetTransactions } from "@/hooks/transaction/useGetTransactions";
-
-import { useGetCategories } from "@/hooks/category/useGetCategories";
 import {
-  PieChart,
-  Pie,
-  Tooltip,
-  Cell,
-  ResponsiveContainer,
-  Legend,
+  ChartContainer,
+  ChartTooltip,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
   LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
-import { useGetBudgets } from "@/hooks/budget/useGetBudgets";
 
-const COLORS = ["#6366f1", "#22c55e", "#ef4444", "#eab308", "#06b6d4"];
+import { useGetTransactions } from "@/hooks/transaction/useGetTransactions";
+import { useGetBudgets } from "@/hooks/budget/useGetBudgets";
+import { useGetCategories } from "@/hooks/category/useGetCategories";
+
+const COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 export default function Dashboard() {
   const { data: transactions = [] } = useGetTransactions({});
   const { data: budgets = [] } = useGetBudgets();
   const { data: categories = [] } = useGetCategories();
 
-  // Group transactions by date
+  // --- Data Prep ---
   const dailyDataMap: Record<
     string,
     { date: string; income: number; expense: number }
@@ -34,9 +45,8 @@ export default function Dashboard() {
 
   transactions.forEach((t) => {
     const date = new Date(t.createdAt).toISOString().split("T")[0];
-    if (!dailyDataMap[date]) {
+    if (!dailyDataMap[date])
       dailyDataMap[date] = { date, income: 0, expense: 0 };
-    }
     if (t.type === "Income") dailyDataMap[date].income += t.amount;
     else dailyDataMap[date].expense += t.amount;
   });
@@ -45,18 +55,14 @@ export default function Dashboard() {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Calculate totals
   const totalIncome = transactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + t.amount, 0);
-
   const totalExpense = transactions
     .filter((t) => t.type === "Expense")
     .reduce((sum, t) => sum + t.amount, 0);
-
   const netBalance = totalIncome - totalExpense;
 
-  // Expense breakdown by category
   const expenseByCategory = categories.map((cat) => {
     const total = transactions
       .filter((t) => t.type === "Expense" && t.categoryId?._id === cat._id)
@@ -64,199 +70,209 @@ export default function Dashboard() {
     return { name: cat.name, value: total };
   });
 
-  // Budget utilization (average %)
   const avgBudgetUsage =
     budgets.length > 0
-      ? budgets.reduce((sum, b) => sum + (b.spentAmount / b.limitAmount) * 100, 0) /
-        budgets.length
+      ? budgets.reduce(
+          (sum, b) => sum + (b.spentAmount / b.limitAmount) * 100,
+          0
+        ) / budgets.length
       : 0;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <section className="min-h-screen bg-neutral-950 text-neutral-100 px-5 sm:px-8 py-10 my-10 ">
       <motion.h1
-        className="text-4xl font-bold text-gray-800 mb-10 text-center"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-4xl font-bold mb-12 text-center text-neutral-100"
       >
         Dashboard Overview
       </motion.h1>
 
-      {/* Summary Cards */}
+      {/* Summary Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        <SummaryCard title="Total Income" value={totalIncome} color="text-emerald-600" />
-        <SummaryCard title="Total Expenses" value={totalExpense} color="text-rose-600" />
+        <SummaryCard
+          title="Total Income"
+          value={totalIncome}
+          color="text-emerald-400"
+        />
+        <SummaryCard
+          title="Total Expenses"
+          value={totalExpense}
+          color="text-rose-400"
+        />
         <SummaryCard
           title="Net Balance"
           value={netBalance}
-          color={netBalance >= 0 ? "text-indigo-600" : "text-rose-600"}
+          color={netBalance >= 0 ? "text-indigo-400" : "text-rose-400"}
         />
       </div>
 
-      {/* Charts Section */}
+      {/* Chart Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Expense Breakdown */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-all"
-        >
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Expense Breakdown by Category
-          </h3>
-          {expenseByCategory.some((e) => e.value > 0) ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={expenseByCategory}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label
-                >
-                  {expenseByCategory.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-gray-500 text-center py-10">
-              No expense data available yet.
-            </p>
-          )}
-        </motion.div>
+        <Card className="bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="text-neutral-100 text-lg font-semibold">
+              Expense Breakdown by Category
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-[320px]">
+            {expenseByCategory.some((e) => e.value > 0) ? (
+              <ChartContainer
+                className="h-[280px]"
+                config={{
+                  value: { label: "Expenses", color: "var(--chart-1)" },
+                }}
+              >
+                <PieChart>
+                  <Pie
+                    data={expenseByCategory}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={100}
+                    label
+                  >
+                    {expenseByCategory.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </PieChart>
+              </ChartContainer>
+            ) : (
+              <p className="text-neutral-500 text-center pt-12">
+                No expense data available yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Budget Utilization */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-all"
-        >
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Budget Utilization
-          </h3>
-          {budgets && budgets.length > 0 ? (
-            <div className="space-y-4">
-              {budgets.map((b) => {
-                const percent = Math.min(
-                  (b.spentAmount / b.limitAmount) * 100,
-                  100
-                );
-                return (
-                  <div key={b._id}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-700 text-sm">
-                        {b.isGlobal
-                          ? "🌐 Global Budget"
-                          : b.categoryId?.name || "Unknown"}
-                      </span>
-                      <span
-                        className={`text-sm font-medium ${
-                          percent >= 90
-                            ? "text-rose-600"
-                            : percent >= 70
-                            ? "text-amber-600"
-                            : "text-emerald-600"
-                        }`}
-                      >
-                        {percent.toFixed(1)}%
-                      </span>
+        <Card className="bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="text-neutral-100 text-lg font-semibold">
+              Budget Utilization
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {budgets.length > 0 ? (
+              <div className="space-y-4">
+                {budgets.map((b) => {
+                  const percent = Math.min(
+                    (b.spentAmount / b.limitAmount) * 100,
+                    100
+                  );
+                  return (
+                    <div key={b._id}>
+                      <div className="flex justify-between mb-1 text-sm">
+                        <span className="text-neutral-300">
+                          {b.isGlobal
+                            ? "🌐 Global"
+                            : b.categoryId?.name || "Unknown"}
+                        </span>
+                        <span
+                          className={`font-medium ${
+                            percent >= 90
+                              ? "text-rose-400"
+                              : percent >= 70
+                                ? "text-amber-400"
+                                : "text-emerald-400"
+                          }`}
+                        >
+                          {percent.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="h-2.5 bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.6 }}
+                          className={`h-full rounded-full ${
+                            percent >= 90
+                              ? "bg-rose-500"
+                              : percent >= 70
+                                ? "bg-amber-500"
+                                : "bg-emerald-500"
+                          }`}
+                        />
+                      </div>
                     </div>
-                    <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percent}%` }}
-                        transition={{ duration: 0.6 }}
-                        className={`h-full rounded-full ${
-                          percent >= 90
-                            ? "bg-rose-600"
-                            : percent >= 70
-                            ? "bg-amber-500"
-                            : "bg-emerald-500"
-                        }`}
-                      ></motion.div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-10">
-              No budgets created yet.
-            </p>
-          )}
-          <p className="mt-6 text-center text-gray-600 text-sm">
-            Avg Usage:{" "}
-            <span className="font-semibold text-gray-800">
-              {avgBudgetUsage.toFixed(1)}%
-            </span>
-          </p>
-        </motion.div>
+                  );
+                })}
+                <p className="pt-4 text-center text-sm text-neutral-400">
+                  Avg Usage:{" "}
+                  <span className="text-neutral-100 font-semibold">
+                    {avgBudgetUsage.toFixed(1)}%
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <p className="text-neutral-500 text-center pt-10">
+                No budgets created yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Income vs Expense Line Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-all mt-10"
-      >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
-          Income vs Expense (Day by Day)
-        </h3>
-        {dailyData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(date) =>
-                  new Date(date).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                  })
-                }
-              />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => `₹${value.toLocaleString()}`}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="income"
-                stroke="#22c55e"
-                strokeWidth={2.5}
-                dot={false}
-                name="Income"
-              />
-              <Line
-                type="monotone"
-                dataKey="expense"
-                stroke="#ef4444"
-                strokeWidth={2.5}
-                dot={false}
-                name="Expense"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-gray-500 text-center py-10">
-            No transaction data available yet.
-          </p>
-        )}
-      </motion.div>
-    </div>
+      {/* Line Chart */}
+      <Card className="mt-10 bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
+        <CardHeader>
+          <CardTitle className="text-neutral-100 text-lg font-semibold">
+            Income vs Expense (Day by Day)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {dailyData.length > 0 ? (
+            <ChartContainer
+              className="min-h-[350px] w-full"
+              config={{
+                income: { label: "Income", color: "var(--chart-1)" },
+                expense: { label: "Expense", color: "var(--chart-2)" },
+              }}
+            >
+              <LineChart data={dailyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--muted)" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(d) =>
+                    new Date(d).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                    })
+                  }
+                />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Line
+                  type="monotone"
+                  dataKey="income"
+                  stroke="var(--chart-1)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="expense"
+                  stroke="var(--chart-2)"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-neutral-500 text-center py-10">
+              No transaction data available yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   );
 }
 
-// Reusable summary card
+// Reusable Summary Card
 function SummaryCard({
   title,
   value,
@@ -272,9 +288,11 @@ function SummaryCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="shadow-lg border border-gray-100 bg-white hover:shadow-xl transition-all">
+      <Card className="bg-neutral-900/70 border border-neutral-800 shadow-md backdrop-blur-md hover:shadow-xl transition-all">
         <CardHeader>
-          <CardTitle className="text-gray-700">{title}</CardTitle>
+          <CardTitle className="text-neutral-400 text-sm font-medium">
+            {title}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className={`text-2xl font-semibold ${color}`}>
