@@ -169,7 +169,7 @@ export default function SignUpForm() {
           <p className="text-neutral-400">Already have an account?</p>
           <a
             href="/signin"
-            className="font-semibold text-neutral-50 hover:underline hover:text-neutral-300 transition-colors"
+            className="font-semibold text-neutral-500 hover:underline hover:text-neutral-300 transition-colors"
           >
             Sign in here
           </a>

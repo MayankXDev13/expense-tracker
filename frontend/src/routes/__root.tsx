@@ -1,7 +1,7 @@
-
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import Navbar from "@/components/Navbar";
 import { motion } from "framer-motion";
+
 
 function NotFoundPage() {
   return (
@@ -23,5 +23,5 @@ export const Route = createRootRoute({
       <Outlet />
     </>
   ),
-  notFoundComponent: NotFoundPage, 
+  notFoundComponent: NotFoundPage,
 });

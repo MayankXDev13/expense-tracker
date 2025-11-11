@@ -16,7 +16,7 @@ import { useSignIn } from "@/hooks/user/useSignIn";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/hooks/user/useCurrentUser";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,13 +28,10 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export default function SignInForm() {
   const { mutate: signIn, isPending, error } = useSignIn();
   const [showPassword, setShowPassword] = useState(false);
-
   const { data: user } = useCurrentUser();
   const navigate = useNavigate();
 
-  if (user) {
-    navigate({ to: "/" });
-  }
+  if (user) navigate({ to: "/" });
 
   const {
     register,
@@ -45,13 +42,17 @@ export default function SignInForm() {
   });
 
   const onSubmit = (data: SignInFormValues) => signIn(data);
-
   const errorMessage =
     (error as { message?: string })?.message || "Invalid credentials";
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-neutral-950 text-neutral-100 px-4">
-      <Card className="bg-neutral-900 border border-neutral-800 shadow-2xl w-full max-w-md rounded-2xl transition-transform duration-200 hover:scale-[1.01]">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="flex justify-center items-center min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-neutral-100 px-4"
+    >
+      <Card className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 shadow-xl w-full max-w-md rounded-2xl transition-transform duration-200 hover:scale-[1.01]">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-3xl font-semibold tracking-tight text-neutral-100">
             SpendSmart
@@ -63,12 +64,15 @@ export default function SignInForm() {
 
         <CardContent className="p-8 space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email Field */}
             <div className="space-y-2">
               <Input
                 placeholder="Email"
                 type="email"
                 {...register("email")}
-                className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-200"
+                className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500 
+                  focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 
+                  focus-visible:ring-offset-neutral-900 transition-all duration-200"
               />
               <AnimatePresence>
                 {errors.email && (
@@ -84,12 +88,15 @@ export default function SignInForm() {
               </AnimatePresence>
             </div>
 
+            {/* Password Field */}
             <div className="space-y-2 relative">
               <Input
                 placeholder="Password"
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
-                className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-200 pr-10"
+                className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500 
+                  focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 
+                  focus-visible:ring-offset-neutral-900 transition-all duration-200 pr-10"
               />
               <button
                 type="button"
@@ -118,6 +125,7 @@ export default function SignInForm() {
               </AnimatePresence>
             </div>
 
+            {/* Error Message */}
             <AnimatePresence>
               {error && (
                 <motion.p
@@ -131,26 +139,31 @@ export default function SignInForm() {
               )}
             </AnimatePresence>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full bg-neutral-100 text-neutral-900 font-medium my-1 hover:bg-neutral-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 rounded-lg"
-            >
-              {isPending ? "Signing in..." : "Sign In"}
-            </Button>
+            {/* Submit Button */}
+            <motion.div whileTap={{ scale: 0.97 }}>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full bg-neutral-100 text-neutral-900 font-medium my-1 
+                  hover:bg-neutral-200 disabled:opacity-70 disabled:cursor-not-allowed 
+                  transition-all duration-300 rounded-lg cursor-pointer"
+              >
+                {isPending ? "Signing in..." : "Sign In"}
+              </Button>
+            </motion.div>
           </form>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 text-center text-sm border-t border-neutral-800 pt-4">
           <p className="text-neutral-400">Don’t have an account?</p>
-          <a
-            href="/signup"
-            className="font-semibold text-neutral-50 hover:underline hover:text-neutral-300 transition-colors"
+          <Link
+            to="/signup"
+            className="font-semibold text-neutral-500 hover:underline hover:text-neutral-300 transition-colors cursor-pointer"
           >
             Create an account
-          </a>
+          </Link>
         </CardFooter>
       </Card>
-    </div>
+    </motion.div>
   );
 }

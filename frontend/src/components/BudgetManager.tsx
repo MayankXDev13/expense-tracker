@@ -65,11 +65,8 @@ export default function BudgetManager() {
   const handleSubmit = () => {
     if (!formData.limitAmount || !formData.startDate) return;
 
-    if (editingId) {
-      updateBudget.mutate({ id: editingId, payload: formData });
-    } else {
-      createBudget.mutate(formData);
-    }
+    if (editingId) updateBudget.mutate({ id: editingId, payload: formData });
+    else createBudget.mutate(formData);
 
     setFormData({
       categoryId: "",
@@ -98,38 +95,40 @@ export default function BudgetManager() {
     setOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteBudget.mutate(id);
-  };
+  const handleDelete = (id: string) => deleteBudget.mutate(id);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500 text-lg font-medium">
+      <div className="flex justify-center items-center h-64 text-neutral-400 text-lg font-medium">
         Loading budgets...
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 my-20 mx-auto w-[92%] md:w-[80%] transition-shadow hover:shadow-xl">
+    <section className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] 
+                        bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800 
+                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl">
       {/* Header */}
       <motion.div
-        className="flex justify-between items-center mb-8"
+        className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-semibold text-gray-800">Manage Budgets</h2>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-100 text-center sm:text-left">
+          Manage Budgets
+        </h2>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg transition-all">
+            <Button className="bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium shadow-md hover:shadow-lg transition-all w-full sm:w-auto text-sm sm:text-base py-2">
               <Plus className="mr-2 h-4 w-4" /> Add Budget
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="bg-white shadow-xl rounded-xl border border-gray-200">
+          <DialogContent className="bg-neutral-900/90 text-neutral-100 backdrop-blur-md border border-neutral-700 rounded-xl shadow-2xl max-w-sm w-[90%] sm:w-[80%]">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-gray-800">
+              <DialogTitle className="text-xl font-semibold">
                 {editingId ? "Edit Budget" : "Create Budget"}
               </DialogTitle>
             </DialogHeader>
@@ -142,69 +141,53 @@ export default function BudgetManager() {
             >
               {/* Category Select */}
               <div>
-                <Label className="text-gray-700">Category</Label>
+                <Label>Category</Label>
                 <Select
-                  value={
-                    formData.isGlobal ? "global" : formData.categoryId || ""
-                  }
+                  value={formData.isGlobal ? "global" : formData.categoryId || ""}
                   onValueChange={(value) => {
                     if (value === "global") {
-                      setFormData({
-                        ...formData,
-                        isGlobal: true,
-                        categoryId: null,
-                      });
+                      setFormData({ ...formData, isGlobal: true, categoryId: null });
                     } else {
-                      setFormData({
-                        ...formData,
-                        isGlobal: false,
-                        categoryId: value,
-                      });
+                      setFormData({ ...formData, isGlobal: false, categoryId: value });
                     }
                   }}
                 >
-                  <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800">
+                  <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
                     <SelectValue placeholder="Select Category or Global" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="global">Global Budget</SelectItem>
-                    {categories &&
-                      categories.map((cat) => (
-                        <SelectItem key={cat._id} value={cat._id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
+                    {categories?.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Amount */}
               <div>
-                <Label className="text-gray-700">Limit Amount (₹)</Label>
+                <Label>Limit Amount (₹)</Label>
                 <Input
                   type="number"
                   value={formData.limitAmount}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      limitAmount: Number(e.target.value),
-                    })
+                    setFormData({ ...formData, limitAmount: Number(e.target.value) })
                   }
                   placeholder="Enter budget limit"
-                  className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                  className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                 />
               </div>
 
               {/* Period */}
               <div>
-                <Label className="text-gray-700">Period</Label>
+                <Label>Period</Label>
                 <Select
                   value={formData.period}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, period: value })
-                  }
+                  onValueChange={(value) => setFormData({ ...formData, period: value })}
                 >
-                  <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800">
+                  <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
                     <SelectValue placeholder="Select Period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -218,48 +201,45 @@ export default function BudgetManager() {
               {/* Dates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-gray-700">Start Date</Label>
+                  <Label>Start Date</Label>
                   <Input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) =>
                       setFormData({ ...formData, startDate: e.target.value })
                     }
-                    className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                    className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
                 <div>
-                  <Label className="text-gray-700">End Date</Label>
+                  <Label>End Date</Label>
                   <Input
                     type="date"
                     value={formData.endDate}
                     onChange={(e) =>
                       setFormData({ ...formData, endDate: e.target.value })
                     }
-                    className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                    className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
               </div>
 
               {/* Threshold */}
               <div>
-                <Label className="text-gray-700">Alert Threshold (%)</Label>
+                <Label>Alert Threshold (%)</Label>
                 <Input
                   type="number"
                   value={formData.alertThreshold}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      alertThreshold: Number(e.target.value),
-                    })
+                    setFormData({ ...formData, alertThreshold: Number(e.target.value) })
                   }
                   placeholder="e.g. 80"
-                  className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                  className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                 />
               </div>
 
               <Button
-                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium shadow-md hover:shadow-lg"
+                className="w-full bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium"
                 onClick={handleSubmit}
                 disabled={createBudget.isPending || updateBudget.isPending}
               >
@@ -275,30 +255,32 @@ export default function BudgetManager() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="overflow-x-auto rounded-xl border border-neutral-800"
       >
-        <Table>
+        <Table className="w-full text-sm sm:text-base">
           <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="text-gray-700 font-semibold">
+            <TableRow className="bg-neutral-800/60 border-b border-neutral-700">
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
                 Type
               </TableHead>
-              <TableHead className="text-gray-700 font-semibold">
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
                 Limit
               </TableHead>
-              <TableHead className="text-gray-700 font-semibold">
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
                 Spent
               </TableHead>
-              <TableHead className="text-gray-700 font-semibold">
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
                 Period
               </TableHead>
-              <TableHead className="text-right text-gray-700 font-semibold">
+              <TableHead className="text-right text-neutral-300 font-semibold px-4 py-3">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             <AnimatePresence>
-              {Array.isArray(budgets) && budgets.length > 0 ? (
+              {budgets && budgets.length > 0 ? (
                 budgets.map((budget: IBudget) => (
                   <motion.tr
                     key={budget._id}
@@ -306,55 +288,51 @@ export default function BudgetManager() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-neutral-800/40 transition-colors"
                   >
-                    <TableCell className="font-medium text-gray-800">
+                    <TableCell className="font-medium text-neutral-100">
                       {budget.isGlobal
                         ? "🌐 Global"
-                        : (typeof budget.categoryId === "object" &&
-                          budget.categoryId !== null
-                          ? (budget.categoryId as { name?: string }).name || "—"
-                          : "—")}
+                        : typeof budget.categoryId === "object"
+                        ? (budget.categoryId as { name?: string }).name || "—"
+                        : "—"}
                     </TableCell>
-                    <TableCell className="text-gray-700 font-semibold">
+                    <TableCell className="text-neutral-200 font-semibold">
                       ₹{budget.limitAmount.toLocaleString()}
                     </TableCell>
                     <TableCell
                       className={`font-semibold ${
-                        budget.isExceeded ? "text-rose-600" : "text-emerald-600"
+                        budget.isExceeded ? "text-rose-400" : "text-emerald-400"
                       }`}
                     >
                       ₹{budget.spentAmount?.toLocaleString() || 0}
                     </TableCell>
-                    <TableCell className="text-gray-600 capitalize">
+                    <TableCell className="text-neutral-400 capitalize">
                       {budget.period}
                     </TableCell>
                     <TableCell className="text-right flex gap-3 justify-end">
                       <Button
                         size="icon"
                         variant="outline"
-                        className="hover:bg-gray-100"
+                        className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
                         onClick={() => handleEdit(budget)}
                       >
-                        <Pencil className="h-4 w-4 text-gray-700" />
+                        <Pencil className="h-4 w-4 text-neutral-300" />
                       </Button>
                       <Button
                         size="icon"
                         variant="outline"
-                        className="hover:bg-rose-50"
+                        className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
                         onClick={() => handleDelete(budget._id)}
                       >
-                        <Trash2 className="h-4 w-4 text-rose-600" />
+                        <Trash2 className="h-4 w-4 text-rose-400" />
                       </Button>
                     </TableCell>
                   </motion.tr>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-gray-500 py-4"
-                  >
+                  <TableCell colSpan={5} className="text-center text-neutral-400 py-6">
                     No budgets found
                   </TableCell>
                 </TableRow>
@@ -363,6 +341,6 @@ export default function BudgetManager() {
           </TableBody>
         </Table>
       </motion.div>
-    </div>
+    </section>
   );
 }

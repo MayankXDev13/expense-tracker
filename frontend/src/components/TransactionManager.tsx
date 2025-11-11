@@ -41,7 +41,6 @@ interface TransactionForm {
 }
 
 export default function TransactionManager() {
-  // Filters
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
@@ -61,7 +60,6 @@ export default function TransactionManager() {
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
 
-  // Dialog + form
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<TransactionForm>({
@@ -75,11 +73,8 @@ export default function TransactionManager() {
   const handleSubmit = () => {
     if (!formData.amount || !formData.type) return;
 
-    if (editingId) {
-      updateTransaction.mutate({ id: editingId, payload: formData });
-    } else {
-      createTransaction.mutate(formData);
-    }
+    if (editingId) updateTransaction.mutate({ id: editingId, payload: formData });
+    else createTransaction.mutate(formData);
 
     setFormData({
       amount: 0,
@@ -104,33 +99,35 @@ export default function TransactionManager() {
     setOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteTransaction.mutate(id);
-  };
+  const handleDelete = (id: string) => deleteTransaction.mutate(id);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500 text-lg font-medium">
+      <div className="flex justify-center items-center h-64 text-neutral-400 text-lg font-medium">
         Loading transactions...
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 my-20 mx-auto w-[92%] md:w-[85%] transition-shadow hover:shadow-xl">
-      {/* Header */}
+    <section className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] 
+                        bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800 
+                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl">
+      {/* Header + Filters */}
       <motion.div
         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-semibold text-gray-800">Transactions</h2>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-100 text-center sm:text-left">
+          Transactions
+        </h2>
 
-        {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Filters + Add Button */}
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3">
           {/* Type Filter */}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[120px] border-gray-300 focus:ring-gray-800">
+            <SelectTrigger className="w-[120px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -142,23 +139,22 @@ export default function TransactionManager() {
 
           {/* Category Filter */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[150px] border-gray-300 focus:ring-gray-800">
+            <SelectTrigger className="w-[150px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {categories &&
-                categories.map((cat) => (
-                  <SelectItem key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
+              {categories?.map((cat) => (
+                <SelectItem key={cat._id} value={cat._id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
           {/* Active Filter */}
           <Select value={isActiveFilter} onValueChange={setIsActiveFilter}>
-            <SelectTrigger className="w-[150px] border-gray-300 focus:ring-gray-800">
+            <SelectTrigger className="w-[150px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -171,15 +167,15 @@ export default function TransactionManager() {
           {/* Add Transaction */}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg transition-all">
+              <Button className="bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" /> Add
               </Button>
             </DialogTrigger>
 
             {/* Transaction Form Dialog */}
-            <DialogContent className="bg-white shadow-xl rounded-xl border border-gray-200">
+            <DialogContent className="bg-neutral-900/90 text-neutral-100 backdrop-blur-md border border-neutral-700 rounded-xl shadow-2xl max-w-sm w-[90%] sm:w-[80%]">
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800">
+                <DialogTitle className="text-xl font-semibold">
                   {editingId ? "Edit Transaction" : "Create Transaction"}
                 </DialogTitle>
               </DialogHeader>
@@ -192,17 +188,14 @@ export default function TransactionManager() {
               >
                 {/* Type */}
                 <div>
-                  <Label className="text-gray-700">Type</Label>
+                  <Label>Type</Label>
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        type: value as "Income" | "Expense",
-                      })
+                      setFormData({ ...formData, type: value as "Income" | "Expense" })
                     }
                   >
-                    <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800">
+                    <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,7 +207,7 @@ export default function TransactionManager() {
 
                 {/* Category */}
                 <div>
-                  <Label className="text-gray-700">Category</Label>
+                  <Label>Category</Label>
                   <Select
                     value={formData.categoryId || "all"}
                     onValueChange={(value) =>
@@ -224,45 +217,44 @@ export default function TransactionManager() {
                       })
                     }
                   >
-                    <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800">
+                    <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">None</SelectItem>
-                      {categories &&
-                        categories.map((cat) => (
-                          <SelectItem key={cat._id} value={cat._id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
+                      {categories?.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Amount */}
                 <div>
-                  <Label className="text-gray-700">Amount (₹)</Label>
+                  <Label>Amount (₹)</Label>
                   <Input
                     type="number"
                     value={formData.amount}
                     onChange={(e) =>
                       setFormData({ ...formData, amount: Number(e.target.value) })
                     }
-                    className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                    className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                     placeholder="Enter amount"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <Label className="text-gray-700">Description</Label>
+                  <Label>Description</Label>
                   <Input
                     type="text"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
+                    className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                     placeholder="e.g. Rent, Groceries"
                   />
                 </div>
@@ -276,16 +268,14 @@ export default function TransactionManager() {
                     onChange={(e) =>
                       setFormData({ ...formData, isRecurring: e.target.checked })
                     }
-                    className="h-4 w-4 text-gray-800 rounded border-gray-300 focus:ring-gray-800"
+                    className="h-4 w-4 accent-neutral-400 rounded border-neutral-600 bg-neutral-800"
                   />
-                  <Label htmlFor="recurring" className="text-gray-700">
-                    Recurring Transaction
-                  </Label>
+                  <Label htmlFor="recurring">Recurring Transaction</Label>
                 </div>
 
                 {/* Submit */}
                 <Button
-                  className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium shadow-md hover:shadow-lg"
+                  className="w-full bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium"
                   onClick={handleSubmit}
                   disabled={
                     createTransaction.isPending || updateTransaction.isPending
@@ -304,19 +294,29 @@ export default function TransactionManager() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="overflow-x-auto rounded-xl border border-neutral-800"
       >
-        <Table>
+        <Table className="w-full text-sm sm:text-base">
           <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="text-gray-700 font-semibold">Type</TableHead>
-              <TableHead className="text-gray-700 font-semibold">Category</TableHead>
-              <TableHead className="text-gray-700 font-semibold">Amount</TableHead>
-              <TableHead className="text-gray-700 font-semibold">Description</TableHead>
-              <TableHead className="text-right text-gray-700 font-semibold">
+            <TableRow className="bg-neutral-800/60 border-b border-neutral-700">
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
+                Type
+              </TableHead>
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
+                Category
+              </TableHead>
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
+                Amount
+              </TableHead>
+              <TableHead className="text-neutral-300 font-semibold px-4 py-3">
+                Description
+              </TableHead>
+              <TableHead className="text-right text-neutral-300 font-semibold px-4 py-3">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             <AnimatePresence>
               {transactions && transactions.length > 0 ? (
@@ -327,47 +327,50 @@ export default function TransactionManager() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-neutral-800/40 transition-colors"
                   >
                     <TableCell
                       className={`font-semibold ${
-                        txn.type === "Expense" ? "text-rose-600" : "text-emerald-600"
+                        txn.type === "Expense" ? "text-rose-400" : "text-emerald-400"
                       }`}
                     >
                       {txn.type}
                     </TableCell>
-                    <TableCell className="text-gray-800 font-medium">
+                    <TableCell className="text-neutral-200 font-medium">
                       {txn.categoryId?.name || "—"}
                     </TableCell>
-                    <TableCell className="text-gray-700 font-semibold">
+                    <TableCell className="text-neutral-200 font-semibold">
                       ₹{txn.amount.toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-gray-600">
+                    <TableCell className="text-neutral-400">
                       {txn.description || "—"}
                     </TableCell>
                     <TableCell className="text-right flex gap-3 justify-end">
                       <Button
                         size="icon"
                         variant="outline"
-                        className="hover:bg-gray-100"
+                        className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
                         onClick={() => handleEdit(txn)}
                       >
-                        <Pencil className="h-4 w-4 text-gray-700" />
+                        <Pencil className="h-4 w-4 text-neutral-300" />
                       </Button>
                       <Button
                         size="icon"
                         variant="outline"
-                        className="hover:bg-rose-50"
+                        className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
                         onClick={() => handleDelete(txn._id)}
                       >
-                        <Trash2 className="h-4 w-4 text-rose-600" />
+                        <Trash2 className="h-4 w-4 text-rose-400" />
                       </Button>
                     </TableCell>
                   </motion.tr>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-gray-500 py-4">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-neutral-400 py-6"
+                  >
                     No transactions found
                   </TableCell>
                 </TableRow>
@@ -376,6 +379,6 @@ export default function TransactionManager() {
           </TableBody>
         </Table>
       </motion.div>
-    </div>
+    </section>
   );
 }

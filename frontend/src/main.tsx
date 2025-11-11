@@ -23,7 +23,9 @@ declare module "@tanstack/react-router" {
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <div className="min-h-screen w-full bg-linear-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-neutral-100">
+        <RouterProvider router={router} />
+      </div>
     </QueryClientProvider>
   </React.StrictMode>
 );

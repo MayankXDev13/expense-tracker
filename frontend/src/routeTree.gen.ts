@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as LearnMoreRouteImport } from './routes/learn-more'
 import { Route as DashboardsRouteImport } from './routes/dashboards'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BudgetsRouteImport } from './routes/budgets'
@@ -30,6 +31,11 @@ const SignupRoute = SignupRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnMoreRoute = LearnMoreRouteImport.update({
+  id: '/learn-more',
+  path: '/learn-more',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardsRoute = DashboardsRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/dashboards': typeof DashboardsRoute
+  '/learn-more': typeof LearnMoreRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/dashboards': typeof DashboardsRoute
+  '/learn-more': typeof LearnMoreRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/dashboards': typeof DashboardsRoute
+  '/learn-more': typeof LearnMoreRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/categories'
     | '/dashboards'
+    | '/learn-more'
     | '/signin'
     | '/signup'
     | '/transactions'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/categories'
     | '/dashboards'
+    | '/learn-more'
     | '/signin'
     | '/signup'
     | '/transactions'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/categories'
     | '/dashboards'
+    | '/learn-more'
     | '/signin'
     | '/signup'
     | '/transactions'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   BudgetsRoute: typeof BudgetsRoute
   CategoriesRoute: typeof CategoriesRoute
   DashboardsRoute: typeof DashboardsRoute
+  LearnMoreRoute: typeof LearnMoreRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   TransactionsRoute: typeof TransactionsRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn-more': {
+      id: '/learn-more'
+      path: '/learn-more'
+      fullPath: '/learn-more'
+      preLoaderRoute: typeof LearnMoreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboards': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   BudgetsRoute: BudgetsRoute,
   CategoriesRoute: CategoriesRoute,
   DashboardsRoute: DashboardsRoute,
+  LearnMoreRoute: LearnMoreRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   TransactionsRoute: TransactionsRoute,
