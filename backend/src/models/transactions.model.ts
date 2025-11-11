@@ -16,10 +16,10 @@ const transactionsSchema = new Schema(
       required: true,
       enum: ["Income", "Expense"],
     },
-    category: {
+    categoryId: {
       type: Schema.Types.ObjectId,
-      ref: "Categories",
-      required: true,
+      ref: "Category",
+      default: null,
     },
     description: {
       type: String,

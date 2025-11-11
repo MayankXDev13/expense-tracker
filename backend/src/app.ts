@@ -21,7 +21,7 @@ app.use(cookieParser());
 // Routes Import
 import healthCheckRoutes from "./routes/healthcheck.routes";
 import userRoutes from "./routes/user.routes";
-import categoriesRoutes from "./routes/categories.routes";
+import categoriesRoutes from "./routes/category.routes";
 import transactionRoutes from "./routes/transactions.routes";
 import budgetsRoutes from "./routes/budgets.routes";
 

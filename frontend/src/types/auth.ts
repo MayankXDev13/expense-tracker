@@ -1,22 +1,22 @@
-export interface User {
+export interface IUser {
   _id: string;
   name: string;
   email: string;
 }
 
-export interface SignUpData {
+export interface ISignUpData {
   username: string;
   email: string;
   password: string;
   loginType: string;
 }
 
-export interface SignInData {
+export interface ISignInData {
   email: string;
   password: string;
 }
 
-export interface AuthResponse {
-  user: User;
+export interface IAuthResponse {
+  user: IUser;
   token?: string; 
 }

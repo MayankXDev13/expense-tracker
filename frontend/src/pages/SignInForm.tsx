@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
-import { useSignIn } from "@/hooks/useSignIn";
+import { useSignIn } from "@/hooks/user/useSignIn";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentUser } from "@/hooks/user/useCurrentUser";
 import { useNavigate } from "@tanstack/react-router";
 
 const signInSchema = z.object({

@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
-import { useSignUp } from "@/hooks/useSignUp";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSignUp } from "@/hooks/user/useSignUp";
+import { useCurrentUser } from "@/hooks/user/useCurrentUser";
 import { useNavigate } from "@tanstack/react-router";
 
 const signUpSchema = z.object({
@@ -36,9 +36,7 @@ export default function SignUpForm() {
 
   if (user) {
     navigate({ to: "/" });
-    
   }
-  
 
   const {
     register,
@@ -91,7 +89,6 @@ export default function SignUpForm() {
               </AnimatePresence>
             </div>
 
-         
             <div className="space-y-2">
               <Input
                 placeholder="Email"
@@ -145,7 +142,6 @@ export default function SignUpForm() {
               </AnimatePresence>
             </div>
 
-  
             <AnimatePresence>
               {error && (
                 <motion.p

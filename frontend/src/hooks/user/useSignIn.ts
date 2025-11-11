@@ -3,8 +3,8 @@ import {
   type UseMutationResult,
   useQueryClient,
 } from "@tanstack/react-query";
-import { axiosInstance } from "../lib/axiosInstance";
-import type { SignUpData, AuthResponse } from "@/types/auth";
+import api from "@/lib/axiosInstance";
+import type { ISignInData, IAuthResponse } from "@/types/auth";
 import type { AxiosError } from "axios";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -12,7 +12,7 @@ type ErrorResponse = {
   message?: string;
 };
 
-function isAxiosErrorWithResponse(
+function isAxiosErrorWithMessage(
   error: unknown
 ): error is AxiosError<ErrorResponse> {
   return (
@@ -23,35 +23,38 @@ function isAxiosErrorWithResponse(
   );
 }
 
-export const useSignUp = (): UseMutationResult<
-  AuthResponse,
+export const useSignIn = (): UseMutationResult<
+  IAuthResponse,
   AxiosError<ErrorResponse>,
-  SignUpData
+  ISignInData
 > => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation<AuthResponse, AxiosError<ErrorResponse>, SignUpData>({
-    mutationFn: async (data: SignUpData) => {
+  return useMutation<IAuthResponse, AxiosError<ErrorResponse>, ISignInData>({
+    mutationFn: async (data: ISignInData) => {
       try {
-        const response = await axiosInstance.post("/user/register", data);
+        const response = await api.post("/user/login", data);
         return response.data;
       } catch (error: unknown) {
-        if (isAxiosErrorWithResponse(error)) {
+        if (isAxiosErrorWithMessage(error)) {
           const backendMessage =
             error.response?.data?.message ||
-            "Sign-up failed. Please try again.";
+            "Sign-in failed. Please try again.";
           throw new Error(backendMessage);
         }
+
         if (error instanceof Error) {
           throw new Error(error.message);
         }
+
         throw new Error("Unexpected error occurred.");
       }
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      navigate({ to: "/signin" });
+      navigate({ to: "/" });
     },
   });
 };

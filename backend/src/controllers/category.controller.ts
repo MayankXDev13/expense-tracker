@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { Categories } from "../models/categories.model";
+import { Category } from "../models/category.model";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ApiError } from "../utils/ApiError";
 import { ApiResponse } from "../utils/ApiResponse";
@@ -16,7 +16,7 @@ const createCategory = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "Missing required fields: name, type");
   }
 
-  const category = await Categories.create({
+  const category = await Category.create({
     name,
     type,
     userId: user._id,
@@ -27,17 +27,17 @@ const createCategory = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, category, "Category created successfully"));
 });
 
-const getCategories = asyncHandler(async (req: Request, res: Response) => {
+const getCategory = asyncHandler(async (req: Request, res: Response) => {
   const user = req.user;
 
-  const categories = await Categories.find({ userId: user?._id });
+  const categorys = await Category.find({ userId: user?._id });
 
-  if (!categories) {
-    throw new ApiError(404, "Categories not found");
+  if (!categorys) {
+    throw new ApiError(404, "Category not found");
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, categories, "Categories fetched successfully"));
+    .json(new ApiResponse(200, categorys, "Category fetched successfully"));
 });
 
 const updateCategory = asyncHandler(async (req: Request, res: Response) => {
@@ -49,7 +49,7 @@ const updateCategory = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "Missing required fields: name, type");
   }
 
-  const category = await Categories.findOne({ _id: id, userId: user?._id });
+  const category = await Category.findOne({ _id: id, userId: user?._id });
 
   if (!category) {
     throw new ApiError(404, "Category not found");
@@ -73,7 +73,7 @@ const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "Missing required fields: id");
   }
 
-  const category = await Categories.deleteOne({ _id: id, userId: user?._id });
+  const category = await Category.deleteOne({ _id: id, userId: user?._id });
 
   if (!category) {
     throw new ApiError(404, "Category not found");
@@ -84,4 +84,4 @@ const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, {}, "Category deleted successfully"));
 });
 
-export { createCategory, getCategories, updateCategory, deleteCategory };
+export { createCategory, getCategory, updateCategory, deleteCategory };

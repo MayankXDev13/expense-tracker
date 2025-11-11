@@ -183,7 +183,7 @@ export default function TransactionDialog({
             </div>
 
             <div className="flex items-center justify-between w-full">
-              <Label htmlFor="active" className="text-sm">
+              <Label htmlFor="active" className="text-sm cursor-pointer">
                 Active
               </Label>
               <Switch

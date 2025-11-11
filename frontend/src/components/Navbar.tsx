@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentUser } from "@/hooks/user/useCurrentUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useLogout } from "@/hooks/useLogout";
+import { useLogout } from "@/hooks/user/useLogout";
 
 export default function Navbar() {
   const { data: user, isLoading } = useCurrentUser();
@@ -40,6 +40,7 @@ export default function Navbar() {
                 { label: "Dashboard", to: "/dashboard" },
                 { label: "Budgets", to: "/budgets" },
                 { label: "Transactions", to: "/transactions" },
+                { label: "Categories", to: "/categories" },
               ].map((item) => (
                 <motion.li
                   key={item.label}

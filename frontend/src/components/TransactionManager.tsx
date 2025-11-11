@@ -6,11 +6,10 @@ import TransactionTable from "./TransactionTable";
 import TransactionSummary from "./TransactionSummary";
 import TransactionDialog from "./TransactionDialog";
 import type { Transaction } from "@/types/transaction";
-import { useGetTransactions } from "@/hooks/useGetTransactions";
-import { useCreateTransaction } from "@/hooks/useCreateTransaction";
-import { useUpdateTransaction } from "@/hooks/useUpdateTransaction";
-import { useDeleteTransaction } from "@/hooks/useDeleteTransaction";
-import { Card } from "@/components/ui/card";
+import { useGetTransactions } from "@/hooks/transaction/useGetTransactions";
+import { useCreateTransaction } from "@/hooks/transaction/useCreateTransaction";
+import { useUpdateTransaction } from "@/hooks/transaction/useUpdateTransaction";
+import { useDeleteTransaction } from "@/hooks/transaction/useDeleteTransaction";
 import { Loader2 } from "lucide-react";
 
 export default function TransactionManager() {

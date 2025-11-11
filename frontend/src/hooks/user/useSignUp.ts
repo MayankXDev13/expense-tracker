@@ -2,17 +2,17 @@ import {
   useMutation,
   type UseMutationResult,
   useQueryClient,
-} from "@tanstack/react-query";
-import api from "../lib/axiosInstance";
-import type { SignInData, AuthResponse } from "@/types/auth";
+} from '@tanstack/react-query';
+import type { ISignUpData, IAuthResponse } from "@/types/auth";
 import type { AxiosError } from "axios";
 import { useNavigate } from "@tanstack/react-router";
+import axiosInstance from '@/lib/axiosInstance';
 
 type ErrorResponse = {
   message?: string;
 };
 
-function isAxiosErrorWithMessage(
+function isAxiosErrorWithResponse(
   error: unknown
 ): error is AxiosError<ErrorResponse> {
   return (
@@ -23,38 +23,35 @@ function isAxiosErrorWithMessage(
   );
 }
 
-export const useSignIn = (): UseMutationResult<
-  AuthResponse,
+export const useSignUp = (): UseMutationResult<
+  IAuthResponse,
   AxiosError<ErrorResponse>,
-  SignInData
+  ISignUpData
 > => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation<AuthResponse, AxiosError<ErrorResponse>, SignInData>({
-    mutationFn: async (data: SignInData) => {
+  return useMutation<IAuthResponse, AxiosError<ErrorResponse>, ISignUpData>({
+    mutationFn: async (data: ISignUpData) => {
       try {
-        const response = await api.post("/user/login", data);
+        const response = await axiosInstance.post("/user/register", data);
         return response.data;
       } catch (error: unknown) {
-        if (isAxiosErrorWithMessage(error)) {
+        if (isAxiosErrorWithResponse(error)) {
           const backendMessage =
             error.response?.data?.message ||
-            "Sign-in failed. Please try again.";
+            "Sign-up failed. Please try again.";
           throw new Error(backendMessage);
         }
-
         if (error instanceof Error) {
           throw new Error(error.message);
         }
-
         throw new Error("Unexpected error occurred.");
       }
     },
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      navigate({ to: "/" });
+      navigate({ to: "/signin" });
     },
   });
 };
