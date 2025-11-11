@@ -9,6 +9,8 @@ export function useCreateTransaction() {
 
   const mutation = useMutation({
     mutationFn: async (newTx: Transaction) => {
+      console.log(newTx);
+      
       const response = await axiosInstance.post("/transaction", newTx);
       return response.data;
     },

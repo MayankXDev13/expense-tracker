@@ -1,41 +1,38 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
-import type { Transaction } from "@/types/transaction";
 import axiosInstance from "@/lib/axiosInstance";
+
+interface UpdateTransactionInput {
+  id: string;
+  payload: Record<string, string | number | boolean>;
+}
 
 export function useUpdateTransaction() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (updatedTx: Transaction) => {
-      if (!updatedTx._id)
-        throw new Error("Transaction ID is required for update");
+    mutationFn: async ({ id, payload }: UpdateTransactionInput) => {
+      if (!id) throw new Error("Transaction ID is required for update");
 
-      console.log(updatedTx);
-      
-
-      const response = await axiosInstance.put(
-        `/transaction/${updatedTx._id}`,
-        updatedTx
-      );
-
-      return response.data;
+      const response = await axiosInstance.put(`/transaction/${id}`, payload);
+      return response.data.data;
     },
 
     onSuccess: () => {
-      toast("Transaction Updated", {
+      toast.success("Transaction Updated", {
         description: "The transaction has been successfully updated!",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      // Invalidate all variants of transactions queries (including with filters)
+      queryClient.invalidateQueries({ queryKey: ["transactions"], exact: false });
     },
 
     onError: (error: AxiosError) => {
-      toast("Failed to Update Transaction", {
+      toast.error("Failed to Update Transaction", {
         description:
           (error.response?.data as { message?: string })?.message ||
-          "Something went wrong while updating.",
+          "Something went wrong while updating the transaction.",
       });
     },
   });

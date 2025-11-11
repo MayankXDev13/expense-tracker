@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axiosInstance";
-import type { Transaction } from "@/types/transaction";
+import type { ITransaction } from "@/types/transaction.types";
 
 export function useGetTransactions(filters: {
   type?: string;
@@ -9,7 +9,7 @@ export function useGetTransactions(filters: {
 }) {
   return useQuery({
     queryKey: ["transactions", filters],
-    queryFn: async (): Promise<Transaction[]> => {
+    queryFn: async (): Promise<ITransaction[]> => {
       const params = new URLSearchParams();
 
       if (filters.type) params.append("type", filters.type);

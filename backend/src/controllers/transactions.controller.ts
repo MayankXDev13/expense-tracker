@@ -10,7 +10,7 @@ const createTransaction = asyncHandler(async (req: Request, res: Response) => {
   const {
     amount,
     type,
-    category,
+    categoryId,
     description,
     isRecurring,
     frequency,
@@ -19,8 +19,8 @@ const createTransaction = asyncHandler(async (req: Request, res: Response) => {
   } = req.body;
   const user = req.user;
 
-  if (category) {
-    const categorys = await Category.findById(category);
+  if (categoryId) {
+    const categorys = await Category.findById(categoryId);
     if (!categorys) {
       throw new ApiError(404, "Category not found");
     }
@@ -29,7 +29,7 @@ const createTransaction = asyncHandler(async (req: Request, res: Response) => {
   const transaction = await Transactions.create({
     amount,
     type,
-    categoryId: category,
+    categoryId,
     description,
     isRecurring,
     frequency,
@@ -111,7 +111,7 @@ const updateTrasaction = asyncHandler(async (req: Request, res: Response) => {
   const {
     amount,
     type,
-    category,
+    categoryId,
     description,
     isRecurring,
     frequency,
@@ -157,7 +157,7 @@ const updateTrasaction = asyncHandler(async (req: Request, res: Response) => {
   // Update common fields for all cases (moved outside conditionals)
   if (amount !== undefined) transaction.amount = amount;
   if (type) transaction.type = type;
-  if (category) transaction.categoryId = category;
+  if (categoryId) transaction.categoryId = categoryId;
   if (description) transaction.description = description;
   if (isRecurring !== undefined) transaction.isRecurring = isRecurring;
 

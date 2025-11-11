@@ -37,7 +37,7 @@ export default function Navbar() {
           {isLoggedIn ? (
             <>
               {[
-                { label: "Dashboard", to: "/dashboard" },
+                { label: "Dashboard", to: "/dashboards" },
                 { label: "Budgets", to: "/budgets" },
                 { label: "Transactions", to: "/transactions" },
                 { label: "Categories", to: "/categories" },
