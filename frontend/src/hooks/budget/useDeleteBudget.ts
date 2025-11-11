@@ -7,7 +7,9 @@ export const useDeleteBudget = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/budget/${id}`);
+      const response = await api.delete(`/budgets/${id}`);
+      console.log("Budget Delete", response.data.data);
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });

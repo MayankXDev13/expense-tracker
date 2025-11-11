@@ -14,8 +14,10 @@ export const useUpdateBudget = () => {
       id: string;
       payload: Partial<IBudget>;
     }) => {
-      const { data } = await api.put(`/budgets/${id}`, payload);
-      return data.data;
+      const response = await api.put(`/budgets/${id}`, payload);
+      console.log("Update Budget", response.data.data);
+      return response.data.data;
+      
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });

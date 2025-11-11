@@ -7,8 +7,10 @@ export const useGetBudgets = () => {
   return useQuery<IBudget>({
     queryKey: ["budgets"],
     queryFn: async () => {
-      const response = await api.get("/budget");
+      const response = await api.get("/budgets");
+      console.log("Get All Budget", response.data.data);
       return response.data.data;
+
     },
   });
 };

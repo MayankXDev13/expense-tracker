@@ -8,8 +8,10 @@ export const useCreateBudget = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: Partial<IBudget>) => {
-      const response = await api.post("/budget", payload);
+      const response = await api.post("/budgets", payload);
+      console.log("Budget created successfully", response.data.data);
       return response.data.data;
+      
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });

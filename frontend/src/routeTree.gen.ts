@@ -13,6 +13,7 @@ import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as BudgetsRouteImport } from './routes/budgets'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TransactionsRoute = TransactionsRouteImport.update({
@@ -35,6 +36,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BudgetsRoute = BudgetsRouteImport.update({
+  id: '/budgets',
+  path: '/budgets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -65,14 +74,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/categories' | '/signin' | '/signup' | '/transactions'
+  fullPaths:
+    | '/'
+    | '/budgets'
+    | '/categories'
+    | '/signin'
+    | '/signup'
+    | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/categories' | '/signin' | '/signup' | '/transactions'
-  id: '__root__' | '/' | '/categories' | '/signin' | '/signup' | '/transactions'
+  to: '/' | '/budgets' | '/categories' | '/signin' | '/signup' | '/transactions'
+  id:
+    | '__root__'
+    | '/'
+    | '/budgets'
+    | '/categories'
+    | '/signin'
+    | '/signup'
+    | '/transactions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BudgetsRoute: typeof BudgetsRoute
   CategoriesRoute: typeof CategoriesRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
@@ -109,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/budgets': {
+      id: '/budgets'
+      path: '/budgets'
+      fullPath: '/budgets'
+      preLoaderRoute: typeof BudgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +151,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BudgetsRoute: BudgetsRoute,
   CategoriesRoute: CategoriesRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,

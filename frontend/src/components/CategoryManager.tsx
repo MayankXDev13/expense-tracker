@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import type { ICategory } from "@/types/category.types";
 import { useGetCategories } from "@/hooks/category/useGetCategories";
@@ -35,10 +40,13 @@ export default function CategoryManager() {
 
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{ name: string; type: "Expense" | "Income" }>({ name: "", type: "Expense" });
+  const [formData, setFormData] = useState<{ name: string; type: "Expense" | "Income" }>({
+    name: "",
+    type: "Expense",
+  });
 
   const handleSubmit = () => {
-    if (!formData.name) return;
+    if (!formData.name.trim()) return;
 
     if (editingId) {
       updateCategory.mutate({ id: editingId, payload: formData });
@@ -62,43 +70,64 @@ export default function CategoryManager() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64 text-gray-500">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64 text-gray-500 text-lg font-medium">
+        Loading categories...
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-md border border-gray-200 my-20">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Categories</h2>
+    <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 my-20 mx-auto w-[92%] md:w-[70%] transition-shadow hover:shadow-xl">
+      {/* Header */}
+      <motion.div
+        className="flex justify-between items-center mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-3xl font-semibold text-gray-800">Manage Categories</h2>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button className="bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg transition-all">
               <Plus className="mr-2 h-4 w-4" /> Add Category
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white shadow-xl rounded-xl border border-gray-200">
             <DialogHeader>
-              <DialogTitle>{editingId ? "Edit Category" : "Create Category"}</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-gray-800">
+                {editingId ? "Edit Category" : "Create Category"}
+              </DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <motion.div
+              className="space-y-5"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <div>
-                <Label htmlFor="name">Category Name</Label>
+                <Label htmlFor="name" className="text-gray-700">
+                  Category Name
+                </Label>
                 <Input
                   id="name"
                   placeholder="e.g. Food, Travel"
+                  className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
 
               <div>
-                <Label>Type</Label>
+                <Label className="text-gray-700">Type</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value as "Expense" | "Income" })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, type: value as "Expense" | "Income" })
+                  }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-800 focus:ring-gray-800">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -109,51 +138,88 @@ export default function CategoryManager() {
               </div>
 
               <Button
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium shadow-md hover:shadow-lg"
                 onClick={handleSubmit}
                 disabled={createCategory.isPending || updateCategory.isPending}
               >
                 {editingId ? "Update Category" : "Create Category"}
               </Button>
-            </div>
+            </motion.div>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
       {/* Category Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {categories && categories.length > 0 ? (
-            categories.map((category: ICategory) => (
-              <TableRow key={category._id}>
-                <TableCell className="font-medium">{category.name}</TableCell>
-                <TableCell>{category.type}</TableCell>
-                <TableCell className="text-right flex gap-3 justify-end">
-                  <Button size="icon" variant="outline" onClick={() => handleEdit(category)}>
-                    <Pencil className="h-4 w-4 text-indigo-600" />
-                  </Button>
-                  <Button size="icon" variant="outline" onClick={() => handleDelete(category._id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3} className="text-center text-gray-500">
-                No categories found
-              </TableCell>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50">
+              <TableHead className="text-gray-700 font-semibold">Name</TableHead>
+              <TableHead className="text-gray-700 font-semibold">Type</TableHead>
+              <TableHead className="text-right text-gray-700 font-semibold">
+                Actions
+              </TableHead>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence>
+              {categories && categories.length > 0 ? (
+                categories.map((category) => (
+                  <motion.tr
+                    key={category._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <TableCell className="font-medium text-gray-800">
+                      {category.name}
+                    </TableCell>
+                    <TableCell
+                      className={`font-semibold ${
+                        category.type === "Expense"
+                          ? "text-rose-600"
+                          : "text-emerald-600"
+                      }`}
+                    >
+                      {category.type}
+                    </TableCell>
+                    <TableCell className="text-right flex gap-3 justify-end">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="hover:bg-gray-100"
+                        onClick={() => handleEdit(category)}
+                      >
+                        <Pencil className="h-4 w-4 text-gray-700" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="hover:bg-rose-50"
+                        onClick={() => handleDelete(category._id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-rose-600" />
+                      </Button>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-gray-500 py-4">
+                    No categories found
+                  </TableCell>
+                </TableRow>
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+      </motion.div>
     </div>
   );
 }
