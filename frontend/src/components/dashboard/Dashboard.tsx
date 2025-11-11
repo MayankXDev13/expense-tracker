@@ -11,6 +11,11 @@ import {
   Cell,
   ResponsiveContainer,
   Legend,
+  LineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Line,
 } from "recharts";
 import { useGetBudgets } from "@/hooks/budget/useGetBudgets";
 
@@ -20,6 +25,25 @@ export default function Dashboard() {
   const { data: transactions = [] } = useGetTransactions({});
   const { data: budgets = [] } = useGetBudgets();
   const { data: categories = [] } = useGetCategories();
+
+  // Group transactions by date
+  const dailyDataMap: Record<
+    string,
+    { date: string; income: number; expense: number }
+  > = {};
+
+  transactions.forEach((t) => {
+    const date = new Date(t.createdAt).toISOString().split("T")[0];
+    if (!dailyDataMap[date]) {
+      dailyDataMap[date] = { date, income: 0, expense: 0 };
+    }
+    if (t.type === "Income") dailyDataMap[date].income += t.amount;
+    else dailyDataMap[date].expense += t.amount;
+  });
+
+  const dailyData = Object.values(dailyDataMap).sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 
   // Calculate totals
   const totalIncome = transactions
@@ -48,7 +72,7 @@ export default function Dashboard() {
       : 0;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen mt-15">
+    <div className="p-8 bg-gray-50 min-h-screen">
       <motion.h1
         className="text-4xl font-bold text-gray-800 mb-10 text-center"
         initial={{ opacity: 0, y: -10 }}
@@ -59,63 +83,13 @@ export default function Dashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {/* Income */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="shadow-lg border border-gray-100 bg-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <CardTitle className="text-gray-700">Total Income</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold text-emerald-600">
-                ₹{totalIncome.toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Expense */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="shadow-lg border border-gray-100 bg-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <CardTitle className="text-gray-700">Total Expenses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold text-rose-600">
-                ₹{totalExpense.toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Net Balance */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="shadow-lg border border-gray-100 bg-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <CardTitle className="text-gray-700">Net Balance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p
-                className={`text-2xl font-semibold ${
-                  netBalance >= 0 ? "text-indigo-600" : "text-rose-600"
-                }`}
-              >
-                ₹{netBalance.toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SummaryCard title="Total Income" value={totalIncome} color="text-emerald-600" />
+        <SummaryCard title="Total Expenses" value={totalExpense} color="text-rose-600" />
+        <SummaryCard
+          title="Net Balance"
+          value={netBalance}
+          color={netBalance >= 0 ? "text-indigo-600" : "text-rose-600"}
+        />
       </div>
 
       {/* Charts Section */}
@@ -225,6 +199,89 @@ export default function Dashboard() {
           </p>
         </motion.div>
       </div>
+
+      {/* Income vs Expense Line Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-all mt-10"
+      >
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          Income vs Expense (Day by Day)
+        </h3>
+        {dailyData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart data={dailyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(date) =>
+                  new Date(date).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                  })
+                }
+              />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number) => `₹${value.toLocaleString()}`}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="income"
+                stroke="#22c55e"
+                strokeWidth={2.5}
+                dot={false}
+                name="Income"
+              />
+              <Line
+                type="monotone"
+                dataKey="expense"
+                stroke="#ef4444"
+                strokeWidth={2.5}
+                dot={false}
+                name="Expense"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-gray-500 text-center py-10">
+            No transaction data available yet.
+          </p>
+        )}
+      </motion.div>
     </div>
+  );
+}
+
+// Reusable summary card
+function SummaryCard({
+  title,
+  value,
+  color,
+}: {
+  title: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="shadow-lg border border-gray-100 bg-white hover:shadow-xl transition-all">
+        <CardHeader>
+          <CardTitle className="text-gray-700">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className={`text-2xl font-semibold ${color}`}>
+            ₹{value.toLocaleString()}
+          </p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
