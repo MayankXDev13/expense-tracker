@@ -1,28 +1,36 @@
 "use client";
-
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
+  AreaChart,
+  Area,
   CartesianGrid,
-  PieChart,
-  Pie,
+  XAxis,
   Cell,
+  LabelList,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
 } from "recharts";
 
 import { useGetTransactions } from "@/hooks/transaction/useGetTransactions";
 import { useGetBudgets } from "@/hooks/budget/useGetBudgets";
 import { useGetCategories } from "@/hooks/category/useGetCategories";
+import type { ITransaction } from "@/types/transaction.types";
+import type { IBudget } from "@/types/budget.types";
 
 const COLORS = [
   "var(--chart-1)",
@@ -37,14 +45,14 @@ export default function Dashboard() {
   const { data: budgets = [] } = useGetBudgets();
   const { data: categories = [] } = useGetCategories();
 
-  // --- Data Prep ---
+  // ----- Daily Income & Expense Aggregation -----
   const dailyDataMap: Record<
     string,
     { date: string; income: number; expense: number }
   > = {};
 
-  transactions.forEach((t) => {
-    const date = new Date(t.createdAt).toISOString().split("T")[0];
+  transactions.forEach((t: ITransaction) => {
+    const date = new Date(t.createdAt!).toISOString().split("T")[0];
     if (!dailyDataMap[date])
       dailyDataMap[date] = { date, income: 0, expense: 0 };
     if (t.type === "Income") dailyDataMap[date].income += t.amount;
@@ -55,6 +63,7 @@ export default function Dashboard() {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
+  // ----- Totals -----
   const totalIncome = transactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -63,13 +72,23 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + t.amount, 0);
   const netBalance = totalIncome - totalExpense;
 
+  // ----- Expenses by Category -----
   const expenseByCategory = categories.map((cat) => {
     const total = transactions
-      .filter((t) => t.type === "Expense" && t.categoryId?._id === cat._id)
+      .filter(
+        (t: ITransaction) =>
+          t.type === "Expense" &&
+          t.categoryId &&
+          (typeof t.categoryId === "string"
+            ? t.categoryId === cat._id
+            : t.categoryId._id === cat._id)
+      )
       .reduce((sum, t) => sum + t.amount, 0);
+
     return { name: cat.name, value: total };
   });
 
+  // ----- Average Budget Usage -----
   const avgBudgetUsage =
     budgets.length > 0
       ? budgets.reduce(
@@ -79,7 +98,7 @@ export default function Dashboard() {
       : 0;
 
   return (
-    <section className="min-h-screen bg-neutral-950 text-neutral-100 px-5 sm:px-8 py-10 my-10 ">
+    <section className="min-h-screen bg-neutral-950 text-neutral-100 px-5 sm:px-8 py-10 my-10">
       <motion.h1
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -89,121 +108,142 @@ export default function Dashboard() {
         Dashboard Overview
       </motion.h1>
 
-      {/* Summary Section */}
+      {/* ---- Summary Section ---- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <SummaryCard
           title="Total Income"
           value={totalIncome}
-          color="text-emerald-400"
+          color="text-neutral-200"
         />
         <SummaryCard
           title="Total Expenses"
           value={totalExpense}
-          color="text-rose-400"
+          color="text-neutral-300"
         />
         <SummaryCard
           title="Net Balance"
           value={netBalance}
-          color={netBalance >= 0 ? "text-indigo-400" : "text-rose-400"}
+          color={netBalance >= 0 ? "text-neutral-100" : "text-neutral-400"}
         />
       </div>
 
-      {/* Chart Section */}
+      {/* ---- Chart Section ---- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Expense Breakdown */}
-        <Card className="bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
-          <CardHeader>
+        {/* ---- Expense Breakdown ---- */}
+        <Card className="bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md flex flex-col">
+          <CardHeader className="items-center pb-0">
             <CardTitle className="text-neutral-100 text-lg font-semibold">
               Expense Breakdown by Category
             </CardTitle>
+            <CardDescription className="text-neutral-400">
+              Overview of spending by category
+            </CardDescription>
           </CardHeader>
-          <CardContent className="h-[320px]">
+
+          <CardContent className="flex-1 pb-0">
             {expenseByCategory.some((e) => e.value > 0) ? (
               <ChartContainer
-                className="h-[280px]"
                 config={{
-                  value: { label: "Expenses", color: "var(--chart-1)" },
+                  ...Object.fromEntries(
+                    categories.map((cat, i) => [
+                      cat.name,
+                      { label: cat.name, color: COLORS[i % COLORS.length] },
+                    ])
+                  ),
                 }}
+                className="mx-auto w-full h-[300px] sm:h-[250px]"
               >
-                <PieChart>
-                  <Pie
-                    data={expenseByCategory}
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={100}
-                    label
-                  >
-                    {expenseByCategory.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent nameKey="value" hideLabel />
+                      }
+                    />
+                    <Pie
+                      data={expenseByCategory}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius="60%"
+                      outerRadius="90%"
+                      stroke="none"
+                    >
+                      {expenseByCategory.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                      <LabelList
+                        dataKey="name"
+                        className="fill-neutral-100"
+                        stroke="none"
+                        fontSize={12}
+                      />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <p className="text-neutral-500 text-center pt-12">
+              <p className="text-neutral-500 text-center pt-10">
                 No expense data available yet.
               </p>
             )}
           </CardContent>
+
+          <CardFooter className="flex-col gap-2 text-sm">
+            <div className="text-neutral-500 leading-none">
+              Showing total expenses by category
+            </div>
+          </CardFooter>
         </Card>
 
-        {/* Budget Utilization */}
-        <Card className="bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
+        {/* ---- Budget Utilization ---- */}
+        <Card className="bg-neutral-900 border border-neutral-800 shadow-xl backdrop-blur-md">
           <CardHeader>
             <CardTitle className="text-neutral-100 text-lg font-semibold">
               Budget Utilization
             </CardTitle>
           </CardHeader>
+
           <CardContent>
             {budgets.length > 0 ? (
               <div className="space-y-4">
-                {budgets.map((b) => {
+                {budgets.map((b: IBudget) => {
                   const percent = Math.min(
                     (b.spentAmount / b.limitAmount) * 100,
                     100
                   );
+
+                  const categoryName = b.isGlobal
+                    ? "Global"
+                    : categories.find((cat) => cat._id === b.categoryId)
+                        ?.name || "Unknown";
+
                   return (
                     <div key={b._id}>
                       <div className="flex justify-between mb-1 text-sm">
-                        <span className="text-neutral-300">
-                          {b.isGlobal
-                            ? "🌐 Global"
-                            : b.categoryId?.name || "Unknown"}
-                        </span>
-                        <span
-                          className={`font-medium ${
-                            percent >= 90
-                              ? "text-rose-400"
-                              : percent >= 70
-                                ? "text-amber-400"
-                                : "text-emerald-400"
-                          }`}
-                        >
+                        <span className="text-neutral-400">{categoryName}</span>
+                        <span className="font-medium text-neutral-300">
                           {percent.toFixed(1)}%
                         </span>
                       </div>
+
                       <div className="h-2.5 bg-neutral-800 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${percent}%` }}
                           transition={{ duration: 0.6 }}
-                          className={`h-full rounded-full ${
-                            percent >= 90
-                              ? "bg-rose-500"
-                              : percent >= 70
-                                ? "bg-amber-500"
-                                : "bg-emerald-500"
-                          }`}
+                          className={`h-full rounded-full bg-neutral-500`}
                         />
                       </div>
                     </div>
                   );
                 })}
+
                 <p className="pt-4 text-center text-sm text-neutral-400">
                   Avg Usage:{" "}
-                  <span className="text-neutral-100 font-semibold">
+                  <span className="text-neutral-200 font-semibold">
                     {avgBudgetUsage.toFixed(1)}%
                   </span>
                 </p>
@@ -217,49 +257,71 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Line Chart */}
-      <Card className="mt-10 bg-neutral-900/70 border border-neutral-800 shadow-xl backdrop-blur-md">
+      {/* ---- Area Chart ---- */}
+      <Card className="mt-10 bg-neutral-900 border border-neutral-800 shadow-xl backdrop-blur-md flex flex-col">
         <CardHeader>
           <CardTitle className="text-neutral-100 text-lg font-semibold">
             Income vs Expense (Day by Day)
           </CardTitle>
+          <CardDescription className="text-neutral-400">
+            Overview of daily transactions
+          </CardDescription>
         </CardHeader>
+
         <CardContent>
           {dailyData.length > 0 ? (
             <ChartContainer
-              className="min-h-[350px] w-full"
+              className="w-full h-[350px]"
               config={{
                 income: { label: "Income", color: "var(--chart-1)" },
                 expense: { label: "Expense", color: "var(--chart-2)" },
               }}
             >
-              <LineChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--muted)" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(d) =>
-                    new Date(d).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                    })
-                  }
-                />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <ChartLegend content={<ChartLegendContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="income"
-                  stroke="var(--chart-1)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="expense"
-                  stroke="var(--chart-2)"
-                  strokeWidth={2}
-                />
-              </LineChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={dailyData}
+                  margin={{ left: 12, right: 12, top: 10, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="oklch(0.35 0.01 270 / 0.3)"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(d) =>
+                      new Date(d).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                      })
+                    }
+                    className="text-neutral-500"
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Area
+                    type="natural"
+                    dataKey="expense"
+                    stroke="var(--chart-2)"
+                    fill="var(--chart-2)"
+                    fillOpacity={0.35}
+                    stackId="a"
+                  />
+                  <Area
+                    type="natural"
+                    dataKey="income"
+                    stroke="var(--chart-1)"
+                    fill="var(--chart-1)"
+                    fillOpacity={0.4}
+                    stackId="a"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </ChartContainer>
           ) : (
             <p className="text-neutral-500 text-center py-10">
@@ -267,12 +329,20 @@ export default function Dashboard() {
             </p>
           )}
         </CardContent>
+
+        <CardFooter>
+          <div className="flex flex-col w-full items-center text-sm text-neutral-400">
+            <div className="text-neutral-500 leading-none mt-1">
+              Based on your recent transaction history
+            </div>
+          </div>
+        </CardFooter>
       </Card>
     </section>
   );
 }
 
-// Reusable Summary Card
+// ----- Reusable Summary Card -----
 function SummaryCard({
   title,
   value,
@@ -286,17 +356,20 @@ function SummaryCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <Card className="bg-neutral-900/70 border border-neutral-800 shadow-md backdrop-blur-md hover:shadow-xl transition-all">
-        <CardHeader>
-          <CardTitle className="text-neutral-400 text-sm font-medium">
+      <Card className="bg-neutral-900 border border-neutral-800/80 rounded-2xl shadow-md backdrop-blur-sm hover:shadow-lg hover:border-neutral-700/80 transition-all duration-300">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-neutral-400 text-sm font-medium tracking-wide">
             {title}
           </CardTitle>
         </CardHeader>
+
         <CardContent>
-          <p className={`text-2xl font-semibold ${color}`}>
-            ₹{value.toLocaleString()}
+          <p
+            className={`text-3xl font-semibold tracking-tight ${color} text-neutral-100`}
+          >
+            ₹{value.toLocaleString("en-IN")}
           </p>
         </CardContent>
       </Card>

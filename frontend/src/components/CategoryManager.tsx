@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Plus } from "lucide-react";
+
 import type { ICategory } from "@/types/category.types";
 import { useGetCategories } from "@/hooks/category/useGetCategories";
 import { useCreateCategory } from "@/hooks/category/useCreateCategory";
@@ -65,23 +68,32 @@ export default function CategoryManager() {
 
   const handleDelete = (id: string) => deleteCategory.mutate(id);
 
+  // Skeleton loader
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-neutral-400 text-lg font-medium">
-        Loading categories...
+      <div className="flex flex-col gap-3 w-[90%] sm:w-[70%] mx-auto mt-28">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="h-14 rounded-lg bg-neutral-800/50 animate-pulse border border-neutral-700"
+          />
+        ))}
       </div>
     );
   }
 
   return (
-    <section className="p-4 sm:p-6 bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800 text-neutral-100 shadow-lg w-[94%] sm:w-[85%] md:w-[75%] lg:w-[65%] mx-auto mt-24 mb-24 transition-shadow hover:shadow-2xl">
+    <section className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%]
+                        bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800
+                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl">
+
       {/* Header */}
       <motion.div
-        className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"
+        className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-2xl sm:text-3xl font-semibold text-center sm:text-left">
+        <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-100 text-center sm:text-left">
           Manage Categories
         </h2>
 
@@ -92,7 +104,7 @@ export default function CategoryManager() {
             </Button>
           </DialogTrigger>
 
-          {/* Dialog */}
+          {/* Dialog Form */}
           <DialogContent className="bg-neutral-900/90 text-neutral-100 backdrop-blur-md border border-neutral-700 rounded-xl shadow-2xl max-w-sm w-[90%] sm:w-[80%]">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold">
@@ -152,11 +164,10 @@ export default function CategoryManager() {
         </Dialog>
       </motion.div>
 
-      {/* Responsive Table / Mobile Cards */}
+      {/* Categories Table (Desktop) */}
       <AnimatePresence>
         {categories && categories.length > 0 ? (
           <>
-            {/* Desktop Table */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -177,6 +188,7 @@ export default function CategoryManager() {
                     </TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {categories.map((category) => (
                     <motion.tr
@@ -190,13 +202,7 @@ export default function CategoryManager() {
                       <TableCell className="font-medium text-neutral-100 px-4 py-3 whitespace-nowrap">
                         {category.name}
                       </TableCell>
-                      <TableCell
-                        className={`font-semibold px-4 py-3 ${
-                          category.type === "Expense"
-                            ? "text-rose-400"
-                            : "text-emerald-400"
-                        }`}
-                      >
+                      <TableCell className="font-semibold text-neutral-400 px-4 py-3 capitalize">
                         {category.type}
                       </TableCell>
                       <TableCell className="text-right px-4 py-3 flex gap-3 justify-end">
@@ -237,15 +243,18 @@ export default function CategoryManager() {
                     <p className="font-medium text-neutral-100">
                       {category.name}
                     </p>
-                    <span
-                      className={`text-sm font-semibold ${
-                        category.type === "Expense"
-                          ? "text-rose-400"
-                          : "text-emerald-400"
-                      }`}
-                    >
+                    <span className="text-sm font-semibold text-neutral-400 capitalize">
                       {category.type}
                     </span>
+                  </div>
+
+                  <div className="h-0.5 bg-neutral-800 rounded-full overflow-hidden mt-1">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.6 }}
+                      className="h-full bg-neutral-600/40"
+                    />
                   </div>
 
                   <div className="flex justify-end gap-3 mt-2">

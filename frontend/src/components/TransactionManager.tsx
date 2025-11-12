@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,11 +28,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Plus } from "lucide-react";
+
 import { useGetTransactions } from "@/hooks/transaction/useGetTransactions";
 import { useCreateTransaction } from "@/hooks/transaction/useCreateTransaction";
 import { useUpdateTransaction } from "@/hooks/transaction/useUpdateTransaction";
 import { useDeleteTransaction } from "@/hooks/transaction/useDeleteTransaction";
 import { useGetCategories } from "@/hooks/category/useGetCategories";
+import type { ITransaction } from "@/types/transaction.types";
 
 interface TransactionForm {
   amount: number;
@@ -41,9 +45,9 @@ interface TransactionForm {
 }
 
 export default function TransactionManager() {
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isActiveFilter, setIsActiveFilter] = useState("all");
 
   const filters = useMemo(
     () => ({
@@ -73,7 +77,13 @@ export default function TransactionManager() {
   const handleSubmit = () => {
     if (!formData.amount || !formData.type) return;
 
-    if (editingId) updateTransaction.mutate({ id: editingId, payload: formData });
+    const payloadData = {
+      ...formData,
+      categoryId: formData.categoryId || "",
+    };
+
+    if (editingId)
+      updateTransaction.mutate({ id: editingId, payload: payloadData });
     else createTransaction.mutate(formData);
 
     setFormData({
@@ -87,32 +97,43 @@ export default function TransactionManager() {
     setOpen(false);
   };
 
-  const handleEdit = (txn: any) => {
+  const handleEdit = (txn: ITransaction) => {
     setFormData({
       amount: txn.amount,
       type: txn.type,
-      categoryId: txn.categoryId?._id || txn.categoryId || "",
+      categoryId: (txn.categoryId && typeof txn.categoryId === "object") ? txn.categoryId._id : txn.categoryId,
       description: txn.description,
-      isRecurring: txn.isRecurring,
+      isRecurring: txn.isRecurring || false,
     });
-    setEditingId(txn._id);
+    setEditingId(txn._id || null);
     setOpen(true);
   };
 
-  const handleDelete = (id: string) => deleteTransaction.mutate(id);
+  const handleDelete = (id?: string) => {
+    if (!id) return;
+    deleteTransaction.mutate(id);
+  };
 
+  // Skeleton loader
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-neutral-400 text-lg font-medium">
-        Loading transactions...
+      <div className="flex flex-col gap-3 w-[90%] sm:w-[70%] mx-auto mt-28">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="h-14 rounded-lg bg-neutral-800/50 animate-pulse border border-neutral-700"
+          />
+        ))}
       </div>
     );
   }
 
   return (
-    <section className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] 
-                        bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800 
-                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl">
+    <section
+      className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%]
+                        bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800
+                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl"
+    >
       {/* Header + Filters */}
       <motion.div
         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
@@ -120,12 +141,11 @@ export default function TransactionManager() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-100 text-center sm:text-left">
-          Transactions
+          Manage Transactions
         </h2>
 
-        {/* Filters + Add Button */}
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3">
-          {/* Type Filter */}
+        {/* Filters */}
+        <div className="flex flex-wrap justify-center md:justify-end items-center gap-3">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[120px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Type" />
@@ -137,7 +157,6 @@ export default function TransactionManager() {
             </SelectContent>
           </Select>
 
-          {/* Category Filter */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[150px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Category" />
@@ -152,7 +171,6 @@ export default function TransactionManager() {
             </SelectContent>
           </Select>
 
-          {/* Active Filter */}
           <Select value={isActiveFilter} onValueChange={setIsActiveFilter}>
             <SelectTrigger className="w-[150px] bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
               <SelectValue placeholder="Status" />
@@ -167,7 +185,7 @@ export default function TransactionManager() {
           {/* Add Transaction */}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+              <Button className="bg-neutral-100 text-neutral-900 hover:bg-neutral-200 font-medium shadow-md hover:shadow-lg transition-all">
                 <Plus className="mr-2 h-4 w-4" /> Add
               </Button>
             </DialogTrigger>
@@ -192,7 +210,10 @@ export default function TransactionManager() {
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, type: value as "Income" | "Expense" })
+                      setFormData({
+                        ...formData,
+                        type: value as "Income" | "Expense",
+                      })
                     }
                   >
                     <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
@@ -209,11 +230,11 @@ export default function TransactionManager() {
                 <div>
                   <Label>Category</Label>
                   <Select
-                    value={formData.categoryId || "all"}
+                    value={formData.categoryId || "none"}
                     onValueChange={(value) =>
                       setFormData({
                         ...formData,
-                        categoryId: value === "all" ? null : value,
+                        categoryId: value === "none" ? null : value,
                       })
                     }
                   >
@@ -221,7 +242,7 @@ export default function TransactionManager() {
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {categories?.map((cat) => (
                         <SelectItem key={cat._id} value={cat._id}>
                           {cat.name}
@@ -238,7 +259,10 @@ export default function TransactionManager() {
                     type="number"
                     value={formData.amount}
                     onChange={(e) =>
-                      setFormData({ ...formData, amount: Number(e.target.value) })
+                      setFormData({
+                        ...formData,
+                        amount: Number(e.target.value),
+                      })
                     }
                     className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
                     placeholder="Enter amount"
@@ -266,7 +290,10 @@ export default function TransactionManager() {
                     type="checkbox"
                     checked={formData.isRecurring}
                     onChange={(e) =>
-                      setFormData({ ...formData, isRecurring: e.target.checked })
+                      setFormData({
+                        ...formData,
+                        isRecurring: e.target.checked,
+                      })
                     }
                     className="h-4 w-4 accent-neutral-400 rounded border-neutral-600 bg-neutral-800"
                   />
@@ -320,51 +347,55 @@ export default function TransactionManager() {
           <TableBody>
             <AnimatePresence>
               {transactions && transactions.length > 0 ? (
-                transactions.map((txn) => (
-                  <motion.tr
-                    key={txn._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="hover:bg-neutral-800/40 transition-colors"
-                  >
-                    <TableCell
-                      className={`font-semibold ${
-                        txn.type === "Expense" ? "text-rose-400" : "text-emerald-400"
-                      }`}
+                transactions.map((txn: ITransaction) => {
+                  const categoryName =
+                    txn.categoryId && typeof txn.categoryId === "object"
+                      ? txn.categoryId.name
+                      : categories?.find((c) => c._id === txn.categoryId._id)
+                          ?.name || "—";
+
+                  return (
+                    <motion.tr
+                      key={txn._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="hover:bg-neutral-800/40 transition-colors"
                     >
-                      {txn.type}
-                    </TableCell>
-                    <TableCell className="text-neutral-200 font-medium">
-                      {txn.categoryId?.name || "—"}
-                    </TableCell>
-                    <TableCell className="text-neutral-200 font-semibold">
-                      ₹{txn.amount.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-neutral-400">
-                      {txn.description || "—"}
-                    </TableCell>
-                    <TableCell className="text-right flex gap-3 justify-end">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
-                        onClick={() => handleEdit(txn)}
-                      >
-                        <Pencil className="h-4 w-4 text-neutral-300" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
-                        onClick={() => handleDelete(txn._id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-rose-400" />
-                      </Button>
-                    </TableCell>
-                  </motion.tr>
-                ))
+                      <TableCell className="font-semibold text-neutral-300">
+                        {txn.type}
+                      </TableCell>
+                      <TableCell className="text-neutral-200 font-medium">
+                        {categoryName}
+                      </TableCell>
+                      <TableCell className="text-neutral-200 font-semibold">
+                        ₹{txn.amount.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-neutral-400">
+                        {txn.description || "—"}
+                      </TableCell>
+                      <TableCell className="text-right flex gap-3 justify-end">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
+                          onClick={() => handleEdit(txn)}
+                        >
+                          <Pencil className="h-4 w-4 text-neutral-300" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
+                          onClick={() => handleDelete(txn._id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-rose-400" />
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell

@@ -40,6 +40,25 @@ const getCategory = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, categorys, "Category fetched successfully"));
 });
 
+const getCategoryById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  if (!id) {
+    throw new ApiError(400, "Missing required fields: id");
+  }
+
+  const category = await Category.findOne({ _id: id, userId: user?._id });
+
+  if (!category) {
+    throw new ApiError(404, "Category not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, category, "Category fetched successfully"));
+});
+
 const updateCategory = asyncHandler(async (req: Request, res: Response) => {
   const { name, type } = req.body;
   const { id } = req.params;
@@ -84,4 +103,10 @@ const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, {}, "Category deleted successfully"));
 });
 
-export { createCategory, getCategory, updateCategory, deleteCategory };
+export {
+  createCategory,
+  getCategory,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+};

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Plus } from "lucide-react";
+
 import { useGetCategories } from "@/hooks/category/useGetCategories";
 import { useGetBudgets } from "@/hooks/budget/useGetBudgets";
 import { useCreateBudget } from "@/hooks/budget/useCreateBudget";
@@ -49,6 +52,7 @@ export default function BudgetManager() {
   const createBudget = useCreateBudget();
   const updateBudget = useUpdateBudget();
   const deleteBudget = useDeleteBudget();
+  console.log(budgets);
 
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -106,9 +110,11 @@ export default function BudgetManager() {
   }
 
   return (
-    <section className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] 
+    <section
+      className="mx-auto mt-28 mb-24 w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] 
                         bg-neutral-900/70 backdrop-blur-md rounded-2xl border border-neutral-800 
-                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl">
+                        text-neutral-100 shadow-lg px-5 sm:px-8 py-8 transition-all hover:shadow-2xl"
+    >
       {/* Header */}
       <motion.div
         className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"
@@ -143,12 +149,22 @@ export default function BudgetManager() {
               <div>
                 <Label>Category</Label>
                 <Select
-                  value={formData.isGlobal ? "global" : formData.categoryId || ""}
+                  value={
+                    formData.isGlobal ? "global" : formData.categoryId || ""
+                  }
                   onValueChange={(value) => {
                     if (value === "global") {
-                      setFormData({ ...formData, isGlobal: true, categoryId: null });
+                      setFormData({
+                        ...formData,
+                        isGlobal: true,
+                        categoryId: null,
+                      });
                     } else {
-                      setFormData({ ...formData, isGlobal: false, categoryId: value });
+                      setFormData({
+                        ...formData,
+                        isGlobal: false,
+                        categoryId: value,
+                      });
                     }
                   }}
                 >
@@ -173,7 +189,10 @@ export default function BudgetManager() {
                   type="number"
                   value={formData.limitAmount}
                   onChange={(e) =>
-                    setFormData({ ...formData, limitAmount: Number(e.target.value) })
+                    setFormData({
+                      ...formData,
+                      limitAmount: Number(e.target.value),
+                    })
                   }
                   placeholder="Enter budget limit"
                   className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
@@ -185,7 +204,9 @@ export default function BudgetManager() {
                 <Label>Period</Label>
                 <Select
                   value={formData.period}
-                  onValueChange={(value) => setFormData({ ...formData, period: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, period: value })
+                  }
                 >
                   <SelectTrigger className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400">
                     <SelectValue placeholder="Select Period" />
@@ -231,7 +252,10 @@ export default function BudgetManager() {
                   type="number"
                   value={formData.alertThreshold}
                   onChange={(e) =>
-                    setFormData({ ...formData, alertThreshold: Number(e.target.value) })
+                    setFormData({
+                      ...formData,
+                      alertThreshold: Number(e.target.value),
+                    })
                   }
                   placeholder="e.g. 80"
                   className="mt-1 bg-neutral-800 border-neutral-700 focus:ring-2 focus:ring-neutral-400"
@@ -281,58 +305,71 @@ export default function BudgetManager() {
           <TableBody>
             <AnimatePresence>
               {budgets && budgets.length > 0 ? (
-                budgets.map((budget: IBudget) => (
-                  <motion.tr
-                    key={budget._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="hover:bg-neutral-800/40 transition-colors"
-                  >
-                    <TableCell className="font-medium text-neutral-100">
-                      {budget.isGlobal
-                        ? "🌐 Global"
-                        : typeof budget.categoryId === "object"
-                        ? (budget.categoryId as { name?: string }).name || "—"
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-neutral-200 font-semibold">
-                      ₹{budget.limitAmount.toLocaleString()}
-                    </TableCell>
-                    <TableCell
-                      className={`font-semibold ${
-                        budget.isExceeded ? "text-rose-400" : "text-emerald-400"
-                      }`}
+                budgets.map((budget: IBudget) => {
+                  const categoryName = budget.isGlobal
+                    ? "Global"
+                    : categories?.find((cat) => cat._id === budget.categoryId)
+                        ?.name || "—";
+
+                  return (
+                    <motion.tr
+                      key={budget._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="hover:bg-neutral-800/40 transition-colors"
                     >
-                      ₹{budget.spentAmount?.toLocaleString() || 0}
-                    </TableCell>
-                    <TableCell className="text-neutral-400 capitalize">
-                      {budget.period}
-                    </TableCell>
-                    <TableCell className="text-right flex gap-3 justify-end">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
-                        onClick={() => handleEdit(budget)}
+                      <TableCell className="font-medium text-neutral-100">
+                        {categoryName}
+                      </TableCell>
+
+                      <TableCell className="text-neutral-200 font-semibold">
+                        ₹{budget.limitAmount.toLocaleString()}
+                      </TableCell>
+
+                      <TableCell
+                        className={`font-semibold ${
+                          budget.isExceeded
+                            ? "text-rose-400"
+                            : "text-neutral-300"
+                        }`}
                       >
-                        <Pencil className="h-4 w-4 text-neutral-300" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
-                        onClick={() => handleDelete(budget._id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-rose-400" />
-                      </Button>
-                    </TableCell>
-                  </motion.tr>
-                ))
+                        ₹{budget.spentAmount?.toLocaleString() || 0}
+                      </TableCell>
+
+                      <TableCell className="text-neutral-400 capitalize">
+                        {budget.period}
+                      </TableCell>
+
+                      <TableCell className="text-right flex gap-3 justify-end">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="border-neutral-700 bg-transparent hover:bg-neutral-800/50 transition"
+                          onClick={() => handleEdit(budget)}
+                        >
+                          <Pencil className="h-4 w-4 text-neutral-300" />
+                        </Button>
+
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="border-neutral-700 bg-transparent hover:bg-rose-900/30 transition"
+                          onClick={() => handleDelete(budget._id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-rose-400" />
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-neutral-400 py-6">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-neutral-400 py-6"
+                  >
                     No budgets found
                   </TableCell>
                 </TableRow>

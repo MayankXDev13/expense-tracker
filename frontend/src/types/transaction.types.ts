@@ -10,14 +10,20 @@ export const TransactionFrequency = {
   YEARLY: "Yearly",
 } as const;
 
-export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
-export type TransactionFrequency = typeof TransactionFrequency[keyof typeof TransactionFrequency];
+export type TransactionType =
+  (typeof TransactionType)[keyof typeof TransactionType];
+export type TransactionFrequency =
+  (typeof TransactionFrequency)[keyof typeof TransactionFrequency];
 export interface ITransaction {
   _id?: string;
   userId: string;
   amount: number;
   type: TransactionType;
-  categoryId: string | null;
+  categoryId: {
+    _id: string;
+    name: string;
+    type: TransactionType;
+  };
   description: string;
   isRecurring?: boolean;
   frequency?: TransactionFrequency | string;
