@@ -16,7 +16,7 @@ export type TransactionFrequency =
   (typeof TransactionFrequency)[keyof typeof TransactionFrequency];
 export interface ITransaction {
   _id?: string;
-  userId: string;
+  userId: string | null;
   amount: number;
   type: TransactionType;
   categoryId: {

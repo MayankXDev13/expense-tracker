@@ -36,10 +36,10 @@ import { useDeleteTransaction } from "@/hooks/transaction/useDeleteTransaction";
 import { useGetCategories } from "@/hooks/category/useGetCategories";
 import type { ITransaction } from "@/types/transaction.types";
 
-interface TransactionForm {
+interface FormState {
   amount: number;
   type: "Income" | "Expense";
-  categoryId: string | null;
+  categoryId: string | null; // Changed to string | null
   description: string;
   isRecurring: boolean;
 }
@@ -66,10 +66,10 @@ export default function TransactionManager() {
 
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<TransactionForm>({
+  const [formData, setFormData] = useState<FormState>({
     amount: 0,
     type: "Expense",
-    categoryId: "",
+    categoryId: null,
     description: "",
     isRecurring: false,
   });
@@ -77,19 +77,26 @@ export default function TransactionManager() {
   const handleSubmit = () => {
     if (!formData.amount || !formData.type) return;
 
-    const payloadData = {
-      ...formData,
-      categoryId: formData.categoryId || "",
+    const payloadData: Record<string, string | number | boolean> = {
+      amount: formData.amount,
+      type: formData.type,
+      description: formData.description,
+      isRecurring: formData.isRecurring,
     };
+
+    // Only include categoryId if it's not null
+    if (formData.categoryId !== null) {
+      payloadData.categoryId = formData.categoryId;
+    }
 
     if (editingId)
       updateTransaction.mutate({ id: editingId, payload: payloadData });
-    else createTransaction.mutate(formData);
+    else createTransaction.mutate(payloadData as any);
 
     setFormData({
       amount: 0,
       type: "Expense",
-      categoryId: "",
+      categoryId: null,
       description: "",
       isRecurring: false,
     });
@@ -98,10 +105,17 @@ export default function TransactionManager() {
   };
 
   const handleEdit = (txn: ITransaction) => {
+    const categoryId =
+      txn.categoryId && typeof txn.categoryId === "object"
+        ? txn.categoryId._id
+        : typeof txn.categoryId === "string"
+        ? txn.categoryId
+        : null;
+
     setFormData({
       amount: txn.amount,
       type: txn.type,
-      categoryId: (txn.categoryId && typeof txn.categoryId === "object") ? txn.categoryId._id : txn.categoryId,
+      categoryId,
       description: txn.description,
       isRecurring: txn.isRecurring || false,
     });
@@ -229,7 +243,7 @@ export default function TransactionManager() {
                 {/* Category */}
                 <div>
                   <Label>Category</Label>
-                  <Select
+                  <Select 
                     value={formData.categoryId || "none"}
                     onValueChange={(value) =>
                       setFormData({

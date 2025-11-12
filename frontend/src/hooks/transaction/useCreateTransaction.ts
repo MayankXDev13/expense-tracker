@@ -1,14 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
-import type { Transaction } from "@/types/transaction";
+
 import axiosInstance from "@/lib/axiosInstance";
+import type { ITransaction } from "@/types/transaction.types";
 
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (newTx: Transaction) => {
+    mutationFn: async (newTx: ITransaction) => {
       console.log(newTx);
       
       const response = await axiosInstance.post("/transaction", newTx);
