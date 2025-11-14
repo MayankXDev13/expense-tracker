@@ -4,5 +4,6 @@ services:
     container_name: expense-tracker-frontend
     ports:
       - "80:80"
+    pull_policy: always
     env_file:
     - .env

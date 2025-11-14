@@ -2,6 +2,7 @@ services:
   backend:
     image: mayankxdev/expense-tracker-backend:latest
     restart: unless-stopped
+    pull_policy: always
     container_name: expense_tracker_backend
     env_file:
       - .env
