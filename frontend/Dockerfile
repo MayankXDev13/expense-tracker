@@ -12,8 +12,7 @@ RUN  bun install
 # Copy project files
 COPY . .
 
-ARG VITE_BACKEND_URL
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 
 
 # Buld Vite

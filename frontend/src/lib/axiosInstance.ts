@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const BASE_URL =
-  window.env?.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/v1/expenseTracker";
 console.log("BASE_URL:", BASE_URL);
 
 export const axiosInstance = axios.create({
