@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-console.log("BASE_URL", BASE_URL);
-
+const BASE_URL =
+  window.env?.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL;
+console.log("BASE_URL:", BASE_URL);
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -63,4 +63,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
