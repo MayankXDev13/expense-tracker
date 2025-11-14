@@ -32,12 +32,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Debug Secrets
-        run: echo "Username is ${{ secrets.DOCKERHUB_USERNAME }}"
-
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.service }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:latest,${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:${{ github.sha }}
+          tags: mayankxdev/expense-tracker-${{ matrix.service }}:latest,mayankxdev/expense-tracker-${{ matrix.service }}:${{ github.sha }}
