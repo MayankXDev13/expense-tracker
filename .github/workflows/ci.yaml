@@ -37,6 +37,4 @@ jobs:
         with:
           context: ./${{ matrix.service }}
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:latest,${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-${{ matrix.service }}:${{ github.sha }}
