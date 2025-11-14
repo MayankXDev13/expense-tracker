@@ -12,6 +12,10 @@ RUN  bun install
 # Copy project files
 COPY . .
 
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
+
 # Buld Vite
 RUN bun run build
 
@@ -26,4 +30,5 @@ COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 
 # Start nginx
-CMD [ "nginx", "-g", "deamon off;" ]
+CMD ["nginx", "-g", "daemon off;"]
+
