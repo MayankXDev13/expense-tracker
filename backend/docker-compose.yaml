@@ -1,0 +1,14 @@
+services:
+  backend:
+    image: mayankxdev/expense-tracker-backend:latest
+    restart: unless-stopped
+    container_name: expense_tracker_backend
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    
+    
+
+    
+
